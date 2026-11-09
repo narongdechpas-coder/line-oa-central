@@ -1,0 +1,452 @@
+{
+  "meta": {
+    "demoName": "Jacky Central",
+    "version": 1,
+    "mode": "MOCK_ONLY",
+    "notice": "All records are fictional. No LINE OA is connected."
+  },
+  "departments": [
+    {
+      "id": "dep-claims",
+      "code": "CLAIMS",
+      "name": "Claims"
+    },
+    {
+      "id": "dep-service",
+      "code": "SERVICE",
+      "name": "Customer Service"
+    },
+    {
+      "id": "dep-sales",
+      "code": "SALES",
+      "name": "Sales"
+    },
+    {
+      "id": "dep-legal",
+      "code": "LEGAL",
+      "name": "Legal & Compliance"
+    },
+    {
+      "id": "dep-underwriting",
+      "code": "UW",
+      "name": "Underwriting"
+    }
+  ],
+  "teams": [
+    {
+      "id": "team-claims",
+      "departmentId": "dep-claims",
+      "name": "Claims Team"
+    },
+    {
+      "id": "team-service",
+      "departmentId": "dep-service",
+      "name": "Service Team"
+    },
+    {
+      "id": "team-sales",
+      "departmentId": "dep-sales",
+      "name": "Sales Support"
+    },
+    {
+      "id": "team-legal",
+      "departmentId": "dep-legal",
+      "name": "Legal Advisory"
+    },
+    {
+      "id": "team-uw",
+      "departmentId": "dep-underwriting",
+      "name": "Underwriting Review"
+    }
+  ],
+  "users": [
+    {
+      "id": "usr-admin",
+      "name": "Demo Admin",
+      "role": "SUPER_ADMIN",
+      "departmentId": null,
+      "teamId": null,
+      "skills": [
+        "admin",
+        "operations"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 20,
+      "experienceYears": 10
+    },
+    {
+      "id": "usr-manager",
+      "name": "Nattaya Manager",
+      "role": "MANAGER",
+      "departmentId": "dep-claims",
+      "teamId": "team-claims",
+      "skills": [
+        "claims",
+        "customer"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 45,
+      "experienceYears": 9
+    },
+    {
+      "id": "usr-sup-claims",
+      "name": "Krit Supervisor",
+      "role": "SUPERVISOR",
+      "departmentId": "dep-claims",
+      "teamId": "team-claims",
+      "skills": [
+        "claims",
+        "motor"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 55,
+      "experienceYears": 7
+    },
+    {
+      "id": "usr-pic-1",
+      "name": "Pimchanok",
+      "role": "PIC_AGENT",
+      "departmentId": "dep-claims",
+      "teamId": "team-claims",
+      "skills": [
+        "claims",
+        "motor",
+        "repair"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 35,
+      "experienceYears": 6
+    },
+    {
+      "id": "usr-pic-2",
+      "name": "Thanawat",
+      "role": "PIC_AGENT",
+      "departmentId": "dep-claims",
+      "teamId": "team-claims",
+      "skills": [
+        "claims",
+        "customer"
+      ],
+      "availability": "BUSY",
+      "workload": 78,
+      "experienceYears": 4
+    },
+    {
+      "id": "usr-pic-3",
+      "name": "Siriporn",
+      "role": "PIC_AGENT",
+      "departmentId": "dep-service",
+      "teamId": "team-service",
+      "skills": [
+        "customer",
+        "service"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 25,
+      "experienceYears": 5
+    },
+    {
+      "id": "usr-legal",
+      "name": "Kamon Legal",
+      "role": "PIC_AGENT",
+      "departmentId": "dep-legal",
+      "teamId": "team-legal",
+      "skills": [
+        "legal",
+        "compliance"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 40,
+      "experienceYears": 8
+    },
+    {
+      "id": "usr-auditor",
+      "name": "Demo Auditor",
+      "role": "AUDITOR",
+      "departmentId": null,
+      "teamId": null,
+      "skills": [
+        "audit"
+      ],
+      "availability": "AVAILABLE",
+      "workload": 10,
+      "experienceYears": 12
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch-claims",
+      "name": "Claims OA",
+      "departmentId": "dep-claims",
+      "status": "SIMULATED",
+      "connection": "NOT_CONNECTED",
+      "color": "#16A36A"
+    },
+    {
+      "id": "ch-service",
+      "name": "Service OA",
+      "departmentId": "dep-service",
+      "status": "SIMULATED",
+      "connection": "NOT_CONNECTED",
+      "color": "#2878D0"
+    },
+    {
+      "id": "ch-sales",
+      "name": "Sales OA",
+      "departmentId": "dep-sales",
+      "status": "SIMULATED",
+      "connection": "NOT_CONNECTED",
+      "color": "#D68A2D"
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus-001",
+      "channelId": "ch-claims",
+      "lineUserId": "U-DEMO-1001",
+      "displayName": "Krit Customer",
+      "phone": "08X-XXX-1001",
+      "tags": [
+        "Motor",
+        "Claim"
+      ]
+    },
+    {
+      "id": "cus-002",
+      "channelId": "ch-service",
+      "lineUserId": "U-DEMO-2001",
+      "displayName": "Mali Customer",
+      "phone": "08X-XXX-2001",
+      "tags": [
+        "Policy",
+        "Service"
+      ]
+    },
+    {
+      "id": "cus-003",
+      "channelId": "ch-sales",
+      "lineUserId": "U-DEMO-3001",
+      "displayName": "Anan Customer",
+      "phone": "08X-XXX-3001",
+      "tags": [
+        "Renewal",
+        "Inquiry"
+      ]
+    },
+    {
+      "id": "cus-004",
+      "channelId": "ch-claims",
+      "lineUserId": "U-DEMO-1002",
+      "displayName": "Nicha Customer",
+      "phone": "08X-XXX-1002",
+      "tags": [
+        "Motor",
+        "Repair"
+      ]
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conv-001",
+      "channelId": "ch-claims",
+      "customerId": "cus-001",
+      "status": "OPEN",
+      "assignedUserId": "usr-pic-1",
+      "lastMessageAt": "2026-11-09T09:40:00+07:00",
+      "unread": 2
+    },
+    {
+      "id": "conv-002",
+      "channelId": "ch-service",
+      "customerId": "cus-002",
+      "status": "OPEN",
+      "assignedUserId": "usr-pic-3",
+      "lastMessageAt": "2026-11-09T09:12:00+07:00",
+      "unread": 1
+    },
+    {
+      "id": "conv-003",
+      "channelId": "ch-sales",
+      "customerId": "cus-003",
+      "status": "PENDING",
+      "assignedUserId": null,
+      "lastMessageAt": "2026-11-09T08:50:00+07:00",
+      "unread": 0
+    },
+    {
+      "id": "conv-004",
+      "channelId": "ch-claims",
+      "customerId": "cus-004",
+      "status": "OPEN",
+      "assignedUserId": "usr-pic-2",
+      "lastMessageAt": "2026-11-08T16:20:00+07:00",
+      "unread": 0
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-001",
+      "conversationId": "conv-001",
+      "direction": "INBOUND",
+      "text": "สอบถามสถานะการเคลมรถยนต์ครับ ต้องใช้เอกสารอะไรเพิ่มเติมไหม",
+      "createdAt": "2026-11-09T09:35:00+07:00"
+    },
+    {
+      "id": "msg-002",
+      "conversationId": "conv-001",
+      "direction": "OUTBOUND",
+      "text": "รับเรื่องแล้วครับ กำลังตรวจสอบเอกสารให้",
+      "createdAt": "2026-11-09T09:37:00+07:00",
+      "simulated": true
+    },
+    {
+      "id": "msg-003",
+      "conversationId": "conv-002",
+      "direction": "INBOUND",
+      "text": "ขอรายละเอียดการต่ออายุกรมธรรม์ค่ะ",
+      "createdAt": "2026-11-09T09:12:00+07:00"
+    },
+    {
+      "id": "msg-004",
+      "conversationId": "conv-003",
+      "direction": "INBOUND",
+      "text": "สนใจประกันรถยนต์ อยากทราบเบี้ยประกันครับ",
+      "createdAt": "2026-11-09T08:50:00+07:00"
+    },
+    {
+      "id": "msg-005",
+      "conversationId": "conv-004",
+      "direction": "INBOUND",
+      "text": "ขอติดตามความคืบหน้าการนำรถเข้าซ่อมค่ะ",
+      "createdAt": "2026-11-08T16:20:00+07:00"
+    }
+  ],
+  "cases": [
+    {
+      "id": "case-0001",
+      "caseNumber": "JC-2026-0001",
+      "conversationId": "conv-001",
+      "originalChannelId": "ch-claims",
+      "originalCustomerId": "cus-001",
+      "title": "ติดตามสถานะการเคลมรถยนต์",
+      "category": "Motor Claim",
+      "priority": "HIGH",
+      "status": "IN_PROGRESS",
+      "currentDepartmentId": "dep-claims",
+      "currentTeamId": "team-claims",
+      "currentOwnerId": "usr-pic-1",
+      "slaState": "AT_RISK",
+      "dueAt": "2026-11-09T12:00:00+07:00",
+      "createdAt": "2026-11-09T09:40:00+07:00"
+    },
+    {
+      "id": "case-0002",
+      "caseNumber": "JC-2026-0002",
+      "conversationId": "conv-002",
+      "originalChannelId": "ch-service",
+      "originalCustomerId": "cus-002",
+      "title": "สอบถามการต่ออายุกรมธรรม์",
+      "category": "Policy Service",
+      "priority": "NORMAL",
+      "status": "ASSIGNED",
+      "currentDepartmentId": "dep-service",
+      "currentTeamId": "team-service",
+      "currentOwnerId": "usr-pic-3",
+      "slaState": "ON_TRACK",
+      "dueAt": "2026-11-10T12:00:00+07:00",
+      "createdAt": "2026-11-09T09:15:00+07:00"
+    },
+    {
+      "id": "case-0003",
+      "caseNumber": "JC-2026-0003",
+      "conversationId": "conv-004",
+      "originalChannelId": "ch-claims",
+      "originalCustomerId": "cus-004",
+      "title": "ประสานงานอู่ซ่อมรถ",
+      "category": "Repair Coordination",
+      "priority": "URGENT",
+      "status": "ESCALATED",
+      "currentDepartmentId": "dep-legal",
+      "currentTeamId": "team-legal",
+      "currentOwnerId": "usr-legal",
+      "slaState": "BREACHED",
+      "dueAt": "2026-11-08T18:00:00+07:00",
+      "createdAt": "2026-11-08T16:30:00+07:00"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "as-001",
+      "caseId": "case-0001",
+      "userId": "usr-pic-1",
+      "assignmentType": "PRIMARY_PIC",
+      "isActive": true,
+      "assignedAt": "2026-11-09T09:45:00+07:00"
+    },
+    {
+      "id": "as-002",
+      "caseId": "case-0002",
+      "userId": "usr-pic-3",
+      "assignmentType": "PRIMARY_PIC",
+      "isActive": true,
+      "assignedAt": "2026-11-09T09:20:00+07:00"
+    },
+    {
+      "id": "as-003",
+      "caseId": "case-0003",
+      "userId": "usr-legal",
+      "assignmentType": "PRIMARY_PIC",
+      "isActive": true,
+      "assignedAt": "2026-11-08T17:10:00+07:00"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "esc-001",
+      "caseId": "case-0003",
+      "fromDepartmentId": "dep-claims",
+      "toDepartmentId": "dep-legal",
+      "toTeamId": "team-legal",
+      "status": "IN_PROGRESS",
+      "reason": "ต้องตรวจสอบข้อกำหนดและความรับผิดในกรณีการซ่อม",
+      "requestedBy": "usr-sup-claims",
+      "createdAt": "2026-11-08T16:45:00+07:00"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-001",
+      "caseId": "case-0003",
+      "escalationId": "esc-001",
+      "title": "ตรวจสอบเงื่อนไขความคุ้มครอง",
+      "assignedDepartmentId": "dep-legal",
+      "assignedTeamId": "team-legal",
+      "assignedUserId": "usr-legal",
+      "status": "IN_PROGRESS",
+      "dueAt": "2026-11-10T17:00:00+07:00"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "tl-001",
+      "caseId": "case-0001",
+      "type": "CASE_CREATED",
+      "label": "สร้าง Case จาก Claims OA",
+      "createdAt": "2026-11-09T09:40:00+07:00"
+    },
+    {
+      "id": "tl-002",
+      "caseId": "case-0001",
+      "type": "ASSIGNED",
+      "label": "มอบหมาย PIC: Pimchanok",
+      "createdAt": "2026-11-09T09:45:00+07:00"
+    },
+    {
+      "id": "tl-003",
+      "caseId": "case-0003",
+      "type": "ESCALATED",
+      "label": "ส่งต่อภายในไปยัง Legal & Compliance",
+      "createdAt": "2026-11-08T16:45:00+07:00"
+    }
+  ]
+}
