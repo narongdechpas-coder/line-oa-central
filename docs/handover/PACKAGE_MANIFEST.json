@@ -1,0 +1,38 @@
+{
+  "package": "Jacky Central Claude Code Handover v1.0",
+  "purpose": "Frontend-only interactive demo; mock data; no live LINE OA integration",
+  "files": [
+    "00_START_HERE.md",
+    "01_product/01_PRODUCT_BRIEF.md",
+    "01_product/02_DEMO_SCOPE.md",
+    "01_product/03_PERSONAS_AND_ROLES.md",
+    "02_workflows/02_WORKFLOW_SPEC.md",
+    "03_ui_ux/03_SCREEN_SPEC.md",
+    "03_ui_ux/04_INTERACTION_RULES.md",
+    "04_data/05_DATA_MODEL.md",
+    "04_data/mock/seed.json",
+    "05_technical/05_TECHNICAL_BLUEPRINT.md",
+    "05_technical/06_ACCEPTANCE_TESTS.md",
+    "05_technical/07_ASSUMPTIONS_AND_OPEN_DECISIONS.md",
+    "05_technical/08_REPOSITORY_STRUCTURE.md",
+    "05_technical/09_CLAUDE_CODE_MASTER_PROMPT.md",
+    "06_deployment/.env.example",
+    "06_deployment/10_GITHUB_NETLIFY_DEPLOYMENT.md",
+    "06_deployment/netlify.toml",
+    "07_reference/api/README_openapi.md",
+    "07_reference/api/openapi.yaml",
+    "07_reference/database/001_initial_schema.sql",
+    "07_reference/database/README_database.md",
+    "07_reference/database/jacky_central_physical_erd.mmd",
+    "07_reference/wireframes/low_fidelity_wireframe.png",
+    "README.md"
+  ],
+  "copied_references": [
+    "07_reference/api/openapi.yaml",
+    "07_reference/api/README_openapi.md",
+    "07_reference/database/001_initial_schema.sql",
+    "07_reference/database/jacky_central_physical_erd.mmd",
+    "07_reference/database/README_database.md",
+    "07_reference/wireframes/low_fidelity_wireframe.png"
+  ]
+}

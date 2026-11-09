@@ -1,0 +1,126 @@
+erDiagram
+    DEPARTMENTS ||--o{ TEAMS : contains
+    DEPARTMENTS ||--o{ LINE_CHANNELS : owns
+    TEAMS ||--o{ TEAM_MEMBERS : has
+    USERS ||--o{ TEAM_MEMBERS : joins
+    USERS ||--o{ USER_ROLES : assigned
+    ROLES ||--o{ USER_ROLES : grants
+    ROLES ||--o{ ROLE_PERMISSIONS : includes
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : defines
+    USER_ROLES ||--o{ USER_SCOPES : scoped_by
+    LINE_CHANNELS ||--o{ CUSTOMERS : identifies
+    LINE_CHANNELS ||--o{ CONVERSATIONS : receives
+    CUSTOMERS ||--o{ CONVERSATIONS : participates
+    CONVERSATIONS ||--o{ MESSAGES : contains
+    MESSAGES ||--o{ ATTACHMENTS : has
+    LINE_CHANNELS ||--o{ WEBHOOK_EVENTS : receives
+    CONVERSATIONS ||--o{ CASES : generates
+    CUSTOMERS ||--o{ CASES : relates_to
+    LINE_CHANNELS ||--o{ CASES : original_channel
+    DEPARTMENTS ||--o{ CASES : current_owner
+    TEAMS ||--o{ CASES : current_team
+    USERS ||--o{ CASES : current_pic
+    CASES ||--o{ CASE_ASSIGNMENTS : assignment_history
+    USERS ||--o{ CASE_ASSIGNMENTS : assigned_to
+    CASES ||--o{ CASE_EVENTS : timeline
+    CASES ||--o{ ESCALATIONS : escalates
+    ESCALATION_RULES ||--o{ ESCALATIONS : triggers
+    ESCALATIONS ||--o{ INTERNAL_TASKS : creates
+    CASES ||--o{ INTERNAL_TASKS : tracks
+    INTERNAL_TASKS ||--o{ INTERNAL_TASK_COMMENTS : has
+    CASES ||--o{ CASE_SLA_TRACKING : measures
+    SLA_POLICIES ||--o{ CASE_SLA_TRACKING : applies
+    USERS ||--o{ AUDIT_LOGS : performs
+    USERS ||--o{ ACCESS_LOGS : requests
+    USERS ||--o{ NOTIFICATION_LOGS : receives
+
+    DEPARTMENTS {
+      uuid id PK
+      varchar code UK
+      varchar name
+      varchar status
+    }
+    TEAMS {
+      uuid id PK
+      uuid department_id FK
+      varchar code
+      varchar name
+    }
+    USERS {
+      uuid id PK
+      varchar email UK
+      varchar employee_code UK
+      varchar identity_subject UK
+      varchar status
+    }
+    LINE_CHANNELS {
+      uuid id PK
+      uuid department_id FK
+      uuid default_team_id FK
+      varchar line_channel_id UK
+      varchar channel_name
+      varchar status
+    }
+    CUSTOMERS {
+      uuid id PK
+      uuid channel_id FK
+      varchar line_user_id
+      varchar display_name
+    }
+    CONVERSATIONS {
+      uuid id PK
+      uuid channel_id FK
+      uuid customer_id FK
+      varchar status
+    }
+    MESSAGES {
+      uuid id PK
+      uuid conversation_id FK
+      varchar direction
+      varchar message_type
+      varchar line_message_id UK
+      jsonb content
+    }
+    CASES {
+      uuid id PK
+      varchar case_number UK
+      uuid conversation_id FK
+      uuid original_channel_id FK
+      uuid original_customer_id FK
+      uuid original_owner_id FK
+      uuid current_department_id FK
+      uuid current_team_id FK
+      uuid current_owner_id FK
+      varchar status
+      varchar priority
+    }
+    CASE_ASSIGNMENTS {
+      uuid id PK
+      uuid case_id FK
+      uuid user_id FK
+      varchar assignment_type
+      varchar assignment_mode
+    }
+    ESCALATIONS {
+      uuid id PK
+      uuid case_id FK
+      uuid from_user_id FK
+      uuid to_user_id FK
+      uuid to_department_id FK
+      varchar status
+    }
+    INTERNAL_TASKS {
+      uuid id PK
+      uuid case_id FK
+      uuid escalation_id FK
+      uuid target_department_id FK
+      uuid assigned_user_id FK
+      varchar status
+    }
+    AUDIT_LOGS {
+      uuid id PK
+      uuid actor_id FK
+      varchar action
+      varchar resource_type
+      uuid resource_id
+    }
