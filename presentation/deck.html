@@ -186,6 +186,26 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 .prob-wrap .ai-slot img { object-position: 32% 50%; }
 .cover .ai-slot img, .cta .ai-slot img { object-position: 70% 50%; }
 .cover .ai-tag, .cta .ai-tag { left: auto; right: 24px; bottom: 64px; }
+/* customer journey */
+.journey { flex: 1; min-height: 0; display: grid; grid-template-columns: 170px repeat(5, 1fr); grid-template-rows: auto 1fr 140px 1fr auto; gap: 10px 12px; }
+.jr-stage { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; font-size: 21px; }
+.jr-stage span { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--warm); color: #fff; font-family: var(--body); font-weight: 700; font-size: 16px; }
+.jr-label { display: flex; flex-direction: column; justify-content: center; padding: 0 6px; font-weight: 700; font-size: 20px; line-height: 1.25; }
+.jr-label small { font-weight: 500; font-size: 14px; color: var(--grey); margin-top: 4px; }
+.jr-label.before { color: var(--risk); }
+.jr-label.after { color: var(--accent); }
+.jr-label.curve { color: var(--ink-2); font-size: 16px; }
+.jr-cell { display: flex; align-items: center; padding: 14px 18px; border-radius: 12px; font-size: 21px; line-height: 1.45; }
+.jr-cell.before { background: var(--risk-bg); color: #6d1a1a; }
+.jr-cell.after { background: #fff; color: var(--ink); border: 2px solid #9fd3bb; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); font-weight: 500; }
+.jr-curve { grid-column: 2 / -1; position: relative; border-radius: 12px; background: rgba(255, 255, 255, 0.6); }
+.jr-curve svg { position: absolute; inset: 6px 0 0; width: 100%; height: calc(100% - 6px); }
+.jr-legend { position: absolute; right: 10px; top: 6px; display: flex; gap: 16px; font-size: 14px; font-weight: 600; }
+.jr-legend .lg::before { content: ""; display: inline-block; width: 22px; height: 0; margin-right: 6px; vertical-align: middle; border-top: 4px solid; }
+.jr-legend .lg.after { color: var(--accent); }
+.jr-legend .lg.before { color: var(--risk); }
+.jr-legend .lg.before::before { border-top-style: dashed; }
+.jr-feat { justify-self: center; padding: 4px 14px; border-radius: 999px; background: var(--soft); color: var(--accent); font-size: 15px; font-weight: 700; }
 </style>
 
 <div class="deck" id="deck">
@@ -279,9 +299,34 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
       <div class="foot"><span>Jacky Central</span><span>แนวคิด</span></div>
     </section>
 
+    <!-- 5. Customer journey -->
+    <section class="sl frame" hidden data-notes="เดินตามลูกค้าคนหนึ่งที่แจ้งเคลมรถผ่าน LINE OA ทีละช่วง แถวบนคือสิ่งที่ลูกค้าเจอวันนี้ แถวล่างคือเมื่อใช้ Jacky Central จุดที่ต่างที่สุดคือช่วงส่งต่อแผนก ลูกค้าไม่ต้องย้าย OA และไม่ต้องเล่าเรื่องซ้ำ เส้นอารมณ์เป็นภาพประกอบเชิงคุณภาพ ไม่ใช่ผลวัดจริง ถ้าลูกค้ามีผลสำรวจความพึงพอใจ ให้ใช้วัดก่อนและหลังทดลองใช้">
+      <div class="kicker"><span class="pill">05</span>Customer Journey · ตัวอย่าง: ลูกค้าแจ้งเคลมรถ</div>
+      <h2 class="title">ลูกค้าเล่าเรื่องครั้งเดียว และรู้เสมอว่ามีคนดูแล</h2>
+      <div class="body">
+        <div class="journey">
+          <div class="jr-corner"></div><div class="jr-stage"><span>1</span>ทักเข้ามา</div><div class="jr-stage"><span>2</span>รับเรื่อง</div><div class="jr-stage"><span>3</span>ส่งต่อแผนก</div><div class="jr-stage"><span>4</span>ติดตามผล</div><div class="jr-stage"><span>5</span>ปิดเรื่อง</div>
+          <div class="jr-label before">วันนี้<small>หลาย OA แยกกัน</small></div><div class="jr-cell before">ทักผิด OA หรือรอจนกว่าคนดูแลบัญชีนั้นจะว่าง</div><div class="jr-cell before">ถูกถามข้อมูลซ้ำ และไม่รู้ว่าใครเป็นคนดูแล</div><div class="jr-cell before">ถูกบอกให้ไปทัก OA อื่น แล้วเล่าเรื่องใหม่ตั้งแต่ต้น</div><div class="jr-cell before">ต้องทักถามเองว่าเรื่องไปถึงไหนแล้ว</div><div class="jr-cell before">ครั้งหน้าทักมา ต้องเริ่มเล่าใหม่อีกรอบ</div>
+          <div class="jr-label curve">ความรู้สึก<br>ของลูกค้า<small>ภาพเชิงคุณภาพ</small></div>
+          <div class="jr-curve">
+            <svg viewBox="0 0 1000 140" preserveAspectRatio="none" role="img" aria-label="เส้นความรู้สึกของลูกค้า: วันนี้ลดลงมากที่สุดช่วงส่งต่อแผนก เมื่อใช้ Jacky Central อยู่ในระดับดีตลอดและดีขึ้นตอนปิดเรื่อง">
+              <line x1="0" y1="130" x2="1000" y2="130" stroke="#cfdcd6" stroke-width="2"/>
+              <polyline points="100,75.0 300,97.0 500,119.0 700,113.5 900,91.5" fill="none" stroke="#b42323" stroke-width="4" stroke-dasharray="10 8" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+              <polyline points="100,50.8 300,44.2 500,42.0 700,37.6 900,28.8" fill="none" stroke="#0d7a59" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+              <circle cx="100" cy="75.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="300" cy="97.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="500" cy="119.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="700" cy="113.5" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="900" cy="91.5" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="100" cy="50.8" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="300" cy="44.2" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="500" cy="42.0" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="700" cy="37.6" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="900" cy="28.8" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/>
+            </svg>
+            <div class="jr-legend"><span class="lg after">Jacky Central</span><span class="lg before">วันนี้</span></div>
+          </div>
+          <div class="jr-label after">Jacky Central<small>ที่เดียว OA เดิม</small></div><div class="jr-cell after">ทุกแชตเข้าที่เดียว ทีมเห็นทันทีพร้อมประวัติลูกค้า</div><div class="jr-cell after">ได้ PIC ตามหัวข้อ หรือคนที่เคยดูแลลูกค้าอยู่แล้ว</div><div class="jr-cell after">ทีมส่งต่อกันภายใน ลูกค้ายังคุยที่ OA เดิม ไม่ต้องเล่าซ้ำ</div><div class="jr-cell after">ระบบเตือนทีมก่อนเกิน SLA ทีมแจ้งความคืบหน้าได้ทันที</div><div class="jr-cell after">ประวัติเรื่องครบ ครั้งหน้าทีมรู้จักลูกค้าทันที</div>
+          <div class="jr-corner"></div><div class="jr-feat">Unified Inbox</div><div class="jr-feat">Routing · ผู้ดูแลหลัก</div><div class="jr-feat">Escalation</div><div class="jr-feat">SLA · Dashboard</div><div class="jr-feat">Customer 360</div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central · สถานการณ์ตัวอย่าง</span><span>Customer Journey</span></div>
+    </section>
+
     <!-- 5. Inbox -->
     <section class="sl frame" hidden data-notes="ชี้ให้ดูช่องตอบด้านล่าง ระบบล็อกให้ตอบผ่าน OA เดิม ไม่มีตัวเลือกช่องทาง ทีมจึงไม่ตอบผิดบัญชี">
-      <div class="kicker"><span class="pill">05</span>Unified Inbox</div>
+      <div class="kicker"><span class="pill">06</span>Unified Inbox</div>
       <h2 class="title">ทีมเห็นทุกแชตในหน้าจอเดียว ไม่ต้องสลับหลายบัญชี</h2>
       <div class="body">
         <div class="feat">
@@ -301,7 +346,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 6. Routing -->
     <section class="sl frame" hidden data-notes="ตัวอย่างในภาพ: ลูกค้าทักมาทาง Sales OA เรื่องโปรโมชัน หัวข้อนี้เป็นของ Marketing ผู้ดูแลหลักของลูกค้าอยู่ในรายชื่อ PIC จึงขึ้นเป็นลำดับแรก และระบบส่งเรื่องไป Marketing ให้อัตโนมัติ หัวข้อและรายชื่อ PIC ตั้งค่าตามโครงสร้างของบริษัทลูกค้าเอง">
-      <div class="kicker"><span class="pill">06</span>ส่งเรื่องตามหัวข้อ</div>
+      <div class="kicker"><span class="pill">07</span>ส่งเรื่องตามหัวข้อ</div>
       <h2 class="title">เรื่องถึงคนที่ถูกตั้งแต่ครั้งแรก</h2>
       <div class="body">
         <div class="feat narrow-shot">
@@ -321,7 +366,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 7. Escalation -->
     <section class="sl frame" hidden data-notes="Escalation เป็นการส่งต่อภายในเท่านั้น ลูกค้ายังอยู่ที่ OA เดิม เมื่อแผนกปลายทางทำเสร็จ Case กลับไปที่แผนกต้นทางพร้อม PIC เดิม ทุกขั้นมีประวัติให้ตรวจย้อนหลัง">
-      <div class="kicker"><span class="pill">07</span>Escalation ภายใน</div>
+      <div class="kicker"><span class="pill">08</span>Escalation ภายใน</div>
       <h2 class="title">ส่งต่อข้ามแผนกแล้วรู้ว่าใครรับเรื่อง และค้างอยู่ที่ใคร</h2>
       <div class="body">
         <div class="feat">
@@ -341,7 +386,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 8. Customer 360 -->
     <section class="sl frame" hidden data-notes="ลูกค้าคนเดียวกันที่ทักหลาย OA ยังเป็นคนละ record การเชื่อมต้องมี consent ทั้งสองฝั่งและผู้จัดการอนุมัติ แต่ละฝั่งเห็นเฉพาะหมวดข้อมูลที่ consent ครอบคลุม ข้อความ consent ตั้งร่วมกับ DPO ของบริษัทลูกค้า">
-      <div class="kicker"><span class="pill">08</span>Customer 360</div>
+      <div class="kicker"><span class="pill">09</span>Customer 360</div>
       <h2 class="title">รู้จักลูกค้าครบทุกช่องทาง โดยยังอยู่ในขอบเขตของ consent</h2>
       <div class="body">
         <div class="feat">
@@ -361,7 +406,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 9. Dashboard -->
     <section class="sl frame" hidden data-notes="ทุกการ์ดบน Dashboard กดลงไปดูรายการเคสได้ SLA ตั้งค่าตามเงื่อนไขของบริษัทลูกค้า เช่น ปฏิทินวันทำการ และสถานะที่หยุดนับ">
-      <div class="kicker"><span class="pill">09</span>Dashboard &amp; SLA</div>
+      <div class="kicker"><span class="pill">10</span>Dashboard &amp; SLA</div>
       <h2 class="title">ผู้บริหารเห็น SLA โดยไม่ต้องรอรายงานสิ้นเดือน</h2>
       <div class="body">
         <div class="feat">
@@ -381,7 +426,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 10. Who gets what -->
     <section class="sl frame" hidden data-notes="ถามผู้ฟังว่าใครในห้องเป็นผู้ใช้กลุ่มไหน แล้วเน้นการ์ดของคนนั้น การซื้อระบบแบบนี้มักต้องผ่านหลายฝ่าย การ์ดนี้ช่วยให้แต่ละฝ่ายเห็นประโยชน์ของตัวเอง">
-      <div class="kicker"><span class="pill">10</span>ประโยชน์ตามบทบาท</div>
+      <div class="kicker"><span class="pill">11</span>ประโยชน์ตามบทบาท</div>
       <h2 class="title">ทุกฝ่ายในบริษัทได้ประโยชน์จากระบบเดียวกัน</h2>
       <div class="body">
         <div class="roles">
@@ -396,7 +441,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 11. Governance -->
     <section class="sl frame" hidden data-notes="ฝ่าย Compliance ของลูกค้ามักถามเรื่องนี้ก่อนตัดสินใจ ตอบได้ว่าระบบออกแบบสิทธิ์ ขอบเขต และ consent ไว้ตั้งแต่แรก ข้อความ consent และระยะเวลาเก็บข้อมูลกำหนดร่วมกับ DPO ของลูกค้า">
-      <div class="kicker"><span class="pill">11</span>ความปลอดภัยและข้อมูลส่วนบุคคล</div>
+      <div class="kicker"><span class="pill">12</span>ความปลอดภัยและข้อมูลส่วนบุคคล</div>
       <h2 class="title">ออกแบบให้ฝ่าย Compliance และ DPO ตรวจสอบได้</h2>
       <div class="body">
         <div class="trust">
@@ -436,7 +481,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 
     <!-- 12. Rollout -->
     <section class="sl frame" hidden data-notes="บอกผู้ฟังตรงๆ ว่าสิ่งที่เห็นวันนี้เป็นระบบเดโม การเชื่อมกับ LINE OA จริงและระบบหลักของบริษัททำร่วมกันตอนติดตั้ง ระยะเวลาประเมินหลังดูระบบของลูกค้า">
-      <div class="kicker"><span class="pill">12</span>การเริ่มใช้งาน</div>
+      <div class="kicker"><span class="pill">13</span>การเริ่มใช้งาน</div>
       <h2 class="title">เริ่มใช้ได้ทีละ OA ไม่ต้องเปลี่ยนทั้งองค์กรในวันเดียว</h2>
       <div class="body">
         <div class="rollout">

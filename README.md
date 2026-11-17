@@ -31,8 +31,8 @@ password protection if it should be restricted.
 ## Landing page and presentation
 
 - `/` is the landing page (InsureFlow style); the app starts at `/dashboard`.
-- `/presentation/` is the 13-slide sales deck for insurance companies (with a cost calculator that uses the
-  audience's own numbers), built from `presentation/deck.html` by
+- `/presentation/` is the 14-slide sales deck for insurance companies (customer journey before/after and a cost
+  calculator that uses the audience's own numbers), built from `presentation/deck.html` by
   `npm run deck` (also run automatically by `npm run dev` and `npm run build`). Arrow keys or swipe to move,
   **N** for speaker notes, `#s3` in the URL opens slide 3.
 - Screenshots used in the deck live in `presentation/img/*.webp`.
