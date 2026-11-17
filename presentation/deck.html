@@ -186,26 +186,59 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 .prob-wrap .ai-slot img { object-position: 32% 50%; }
 .cover .ai-slot img, .cta .ai-slot img { object-position: 70% 50%; }
 .cover .ai-tag, .cta .ai-tag { left: auto; right: 24px; bottom: 64px; }
-/* customer journey */
-.journey { flex: 1; min-height: 0; display: grid; grid-template-columns: 170px repeat(5, 1fr); grid-template-rows: auto 1fr 140px 1fr auto; gap: 10px 12px; }
-.jr-stage { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; font-size: 21px; }
-.jr-stage span { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--warm); color: #fff; font-family: var(--body); font-weight: 700; font-size: 16px; }
-.jr-label { display: flex; flex-direction: column; justify-content: center; padding: 0 6px; font-weight: 700; font-size: 20px; line-height: 1.25; }
-.jr-label small { font-weight: 500; font-size: 14px; color: var(--grey); margin-top: 4px; }
-.jr-label.before { color: var(--risk); }
-.jr-label.after { color: var(--accent); }
-.jr-label.curve { color: var(--ink-2); font-size: 16px; }
-.jr-cell { display: flex; align-items: center; padding: 14px 18px; border-radius: 12px; font-size: 21px; line-height: 1.45; }
-.jr-cell.before { background: var(--risk-bg); color: #6d1a1a; }
-.jr-cell.after { background: #fff; color: var(--ink); border: 2px solid #9fd3bb; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); font-weight: 500; }
-.jr-curve { grid-column: 2 / -1; position: relative; border-radius: 12px; background: rgba(255, 255, 255, 0.6); }
-.jr-curve svg { position: absolute; inset: 6px 0 0; width: 100%; height: calc(100% - 6px); }
-.jr-legend { position: absolute; right: 10px; top: 6px; display: flex; gap: 16px; font-size: 14px; font-weight: 600; }
-.jr-legend .lg::before { content: ""; display: inline-block; width: 22px; height: 0; margin-right: 6px; vertical-align: middle; border-top: 4px solid; }
-.jr-legend .lg.after { color: var(--accent); }
-.jr-legend .lg.before { color: var(--risk); }
-.jr-legend .lg.before::before { border-top-style: dashed; }
-.jr-feat { justify-self: center; padding: 4px 14px; border-radius: 999px; background: var(--soft); color: var(--accent); font-size: 15px; font-weight: 700; }
+/* customer journey story (animated) */
+.story-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+.story-modes { display: flex; gap: 6px; padding: 5px; border-radius: 999px; background: #fff; box-shadow: 0 4px 14px rgba(18, 48, 42, 0.08); }
+.story-mode { border: 0; border-radius: 999px; padding: 9px 20px; background: none; font: inherit; font-size: 18px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.story-mode[aria-pressed="true"][data-mode="today"] { background: var(--risk); color: #fff; }
+.story-mode[aria-pressed="true"][data-mode="jc"] { background: var(--accent); color: #fff; }
+.story-replay { border: 1px solid rgba(18, 48, 42, 0.18); border-radius: 999px; padding: 9px 18px; background: #fff; font: inherit; font-size: 17px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.story-mode:focus-visible, .story-replay:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.scene { position: relative; height: 470px; margin-top: 10px; }
+.road { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.road path { fill: none; stroke-linecap: round; }
+#roadMain { stroke: #d4e2dc; stroke-width: 14; }
+#roadDetour { stroke: transparent; stroke-width: 10; stroke-dasharray: 2 18; transition: stroke 0.4s; }
+.scene[data-mode="today"].detoured #roadDetour { stroke: rgba(180, 35, 35, 0.55); }
+#roadDone { stroke-width: 14; transition: d 1s ease, stroke 0.4s; }
+.scene[data-mode="today"] #roadDone { stroke: rgba(180, 35, 35, 0.75); }
+.scene[data-mode="jc"] #roadDone { stroke: var(--accent); }
+.station, .detour { position: absolute; top: 170px; width: 230px; margin-left: -115px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.station .st-ico, .detour .st-ico { margin-top: -38px; width: 76px; height: 76px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #fff; border: 4px solid #d4e2dc; transition: border-color 0.4s, background 0.4s; }
+.st-ico svg { width: 34px; height: 34px; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.station b, .detour b { font-family: var(--display); font-weight: 500; font-size: 23px; color: var(--ink); }
+.st-cap { margin: 0; min-height: 3em; font-size: 18px; line-height: 1.45; color: var(--ink-2); opacity: 0; transform: translateY(6px); transition: opacity 0.5s, transform 0.5s; }
+.station.done .st-cap { opacity: 1; transform: none; }
+.scene[data-mode="today"] .station.done .st-ico { border-color: var(--risk); background: var(--risk-bg); }
+.scene[data-mode="jc"] .station.done .st-ico { border-color: var(--accent); background: var(--soft); }
+.detour { top: 360px; opacity: 0; transform: scale(0.8); transition: opacity 0.4s, transform 0.4s; }
+.detour .st-ico { border-color: var(--risk); background: var(--risk-bg); }
+.detour p { margin: 0; font-size: 17px; color: var(--risk); font-weight: 600; }
+.scene[data-mode="today"] .detour.show { opacity: 1; transform: none; }
+.handoff { position: absolute; left: 720px; top: 30px; margin-left: -150px; width: 300px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 700; font-size: 18px; opacity: 0; transform: translateY(10px); transition: opacity 0.4s, transform 0.4s; }
+.handoff span { padding: 2px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.18); }
+.handoff i { font-style: normal; animation: hop 1s ease-in-out infinite; }
+.handoff small { width: 100%; text-align: center; font-weight: 500; font-size: 14px; opacity: 0.9; }
+.scene[data-mode="jc"] .handoff.show { opacity: 1; transform: none; }
+@keyframes hop { 50% { transform: translateX(6px); } }
+.walker { position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; z-index: 3; transition: left 1.1s cubic-bezier(.5, 0, .3, 1), top 1.1s cubic-bezier(.5, 0, .3, 1); }
+.face { width: 84px; height: 84px; filter: drop-shadow(0 8px 14px rgba(18, 48, 42, 0.25)); }
+.face-ring { fill: #fff; stroke: var(--grey); stroke-width: 5; transition: stroke 0.4s; }
+.walker[data-mood="good"] .face-ring { stroke: var(--accent); }
+.walker[data-mood="meh"] .face-ring { stroke: var(--warm); }
+.walker[data-mood="bad"] .face-ring { stroke: var(--risk); }
+#mouth { transition: d 0.4s; }
+.bubble { position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 300px; padding: 10px 16px; border-radius: 16px; background: #fff; color: var(--ink); font-size: 19px; font-weight: 600; line-height: 1.35; box-shadow: 0 8px 22px rgba(18, 48, 42, 0.16); text-align: center; }
+.bubble::after { content: ""; position: absolute; left: 50%; bottom: -9px; margin-left: -9px; border: 9px solid transparent; border-bottom: 0; border-top-color: #fff; }
+.bubble:empty { display: none; }
+.bubble.pop { animation: pop 0.45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { transform: translateX(-50%) scale(0.7); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+.story-sum { margin-top: 6px; min-height: 58px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 20px; font-weight: 600; opacity: 0; transition: opacity 0.5s; }
+.story-sum.show { opacity: 1; }
+.story-sum span { padding: 8px 16px; border-radius: 999px; }
+.story-sum[data-mode="today"] span { background: var(--risk-bg); color: var(--risk); }
+.story-sum[data-mode="jc"] span { background: var(--accent); color: #fff; }
+@media (prefers-reduced-motion: reduce) { .walker, .bubble.pop, .handoff i, .st-cap, #roadDone { transition: none; animation: none; } }
 </style>
 
 <div class="deck" id="deck">
@@ -299,29 +332,43 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
       <div class="foot"><span>Jacky Central</span><span>แนวคิด</span></div>
     </section>
 
-    <!-- 5. Customer journey -->
-    <section class="sl frame" hidden data-notes="เดินตามลูกค้าคนหนึ่งที่แจ้งเคลมรถผ่าน LINE OA ทีละช่วง แถวบนคือสิ่งที่ลูกค้าเจอวันนี้ แถวล่างคือเมื่อใช้ Jacky Central จุดที่ต่างที่สุดคือช่วงส่งต่อแผนก ลูกค้าไม่ต้องย้าย OA และไม่ต้องเล่าเรื่องซ้ำ เส้นอารมณ์เป็นภาพประกอบเชิงคุณภาพ ไม่ใช่ผลวัดจริง ถ้าลูกค้ามีผลสำรวจความพึงพอใจ ให้ใช้วัดก่อนและหลังทดลองใช้">
+    <!-- 5. Customer journey (animated story) -->
+    <section class="sl frame story" hidden data-notes="ปล่อยให้ภาพเล่นเอง ฉากแรกคือวันนี้: ลูกค้าแจ้งเคลมรถ ถูกถามซ้ำ ถูกส่งไปทัก OA อื่นแล้วเล่าเรื่องใหม่ ต้องทักตามเอง ฉากที่สองคือเมื่อใช้ Jacky Central: ลูกค้าเดินทางเดียว อยู่ OA เดิมตลอด ทีมส่งต่อกันเบื้องหลัง ตัวเลขในแถบสรุปเป็นของสถานการณ์ตัวอย่างนี้ ไม่ใช่ค่าเฉลี่ยจริง กดปุ่มด้านบนเพื่อเล่นซ้ำหรือสลับฉาก">
       <div class="kicker"><span class="pill">05</span>Customer Journey · ตัวอย่าง: ลูกค้าแจ้งเคลมรถ</div>
       <h2 class="title">ลูกค้าเล่าเรื่องครั้งเดียว และรู้เสมอว่ามีคนดูแล</h2>
-      <div class="body">
-        <div class="journey">
-          <div class="jr-corner"></div><div class="jr-stage"><span>1</span>ทักเข้ามา</div><div class="jr-stage"><span>2</span>รับเรื่อง</div><div class="jr-stage"><span>3</span>ส่งต่อแผนก</div><div class="jr-stage"><span>4</span>ติดตามผล</div><div class="jr-stage"><span>5</span>ปิดเรื่อง</div>
-          <div class="jr-label before">วันนี้<small>หลาย OA แยกกัน</small></div><div class="jr-cell before">ทักผิด OA หรือรอจนกว่าคนดูแลบัญชีนั้นจะว่าง</div><div class="jr-cell before">ถูกถามข้อมูลซ้ำ และไม่รู้ว่าใครเป็นคนดูแล</div><div class="jr-cell before">ถูกบอกให้ไปทัก OA อื่น แล้วเล่าเรื่องใหม่ตั้งแต่ต้น</div><div class="jr-cell before">ต้องทักถามเองว่าเรื่องไปถึงไหนแล้ว</div><div class="jr-cell before">ครั้งหน้าทักมา ต้องเริ่มเล่าใหม่อีกรอบ</div>
-          <div class="jr-label curve">ความรู้สึก<br>ของลูกค้า<small>ภาพเชิงคุณภาพ</small></div>
-          <div class="jr-curve">
-            <svg viewBox="0 0 1000 140" preserveAspectRatio="none" role="img" aria-label="เส้นความรู้สึกของลูกค้า: วันนี้ลดลงมากที่สุดช่วงส่งต่อแผนก เมื่อใช้ Jacky Central อยู่ในระดับดีตลอดและดีขึ้นตอนปิดเรื่อง">
-              <line x1="0" y1="130" x2="1000" y2="130" stroke="#cfdcd6" stroke-width="2"/>
-              <polyline points="100,75.0 300,97.0 500,119.0 700,113.5 900,91.5" fill="none" stroke="#b42323" stroke-width="4" stroke-dasharray="10 8" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-              <polyline points="100,50.8 300,44.2 500,42.0 700,37.6 900,28.8" fill="none" stroke="#0d7a59" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-              <circle cx="100" cy="75.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="300" cy="97.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="500" cy="119.0" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="700" cy="113.5" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="900" cy="91.5" r="7" fill="#b42323" stroke="#ffffff" stroke-width="3"/><circle cx="100" cy="50.8" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="300" cy="44.2" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="500" cy="42.0" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="700" cy="37.6" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/><circle cx="900" cy="28.8" r="7" fill="#0d7a59" stroke="#ffffff" stroke-width="3"/>
-            </svg>
-            <div class="jr-legend"><span class="lg after">Jacky Central</span><span class="lg before">วันนี้</span></div>
-          </div>
-          <div class="jr-label after">Jacky Central<small>ที่เดียว OA เดิม</small></div><div class="jr-cell after">ทุกแชตเข้าที่เดียว ทีมเห็นทันทีพร้อมประวัติลูกค้า</div><div class="jr-cell after">ได้ PIC ตามหัวข้อ หรือคนที่เคยดูแลลูกค้าอยู่แล้ว</div><div class="jr-cell after">ทีมส่งต่อกันภายใน ลูกค้ายังคุยที่ OA เดิม ไม่ต้องเล่าซ้ำ</div><div class="jr-cell after">ระบบเตือนทีมก่อนเกิน SLA ทีมแจ้งความคืบหน้าได้ทันที</div><div class="jr-cell after">ประวัติเรื่องครบ ครั้งหน้าทีมรู้จักลูกค้าทันที</div>
-          <div class="jr-corner"></div><div class="jr-feat">Unified Inbox</div><div class="jr-feat">Routing · ผู้ดูแลหลัก</div><div class="jr-feat">Escalation</div><div class="jr-feat">SLA · Dashboard</div><div class="jr-feat">Customer 360</div>
+      <div class="story-bar">
+        <div class="story-modes" role="group" aria-label="เลือกฉาก">
+          <button type="button" class="story-mode" data-mode="today" aria-pressed="true">วันนี้ · หลาย OA แยกกัน</button>
+          <button type="button" class="story-mode" data-mode="jc" aria-pressed="false">ใช้ Jacky Central</button>
+        </div>
+        <button type="button" class="story-replay" id="storyReplay">↻ เล่นอีกครั้ง</button>
+      </div>
+      <div class="scene" id="scene" data-mode="today">
+        <svg class="road" viewBox="0 0 1448 470" preserveAspectRatio="none" aria-hidden="true">
+          <path id="roadMain" d="M140 170 L1300 170" />
+          <path id="roadDetour" d="M720 170 C760 330, 820 360, 860 360 C900 360, 960 330, 1010 170" />
+          <path id="roadDone" d="M140 170 L140 170" />
+        </svg>
+        <div class="station" data-st="0" style="left:140px"><span class="st-ico"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H9l-5 4z"/></svg></span><b>ทักเข้ามา</b><p class="st-cap"></p></div>
+        <div class="station" data-st="1" style="left:430px"><span class="st-ico"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-4 3-6 7-6"/><path d="M14 17l3 3 5-6"/></svg></span><b>รับเรื่อง</b><p class="st-cap"></p></div>
+        <div class="station" data-st="2" style="left:720px"><span class="st-ico"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><b>ส่งต่อแผนก</b><p class="st-cap"></p></div>
+        <div class="station" data-st="3" style="left:1010px"><span class="st-ico"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg></span><b>ติดตามผล</b><p class="st-cap"></p></div>
+        <div class="station" data-st="4" style="left:1300px"><span class="st-ico"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></span><b>ปิดเรื่อง</b><p class="st-cap"></p></div>
+        <div class="detour" style="left:860px"><span class="st-ico"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4"/></svg></span><b>OA อีกบัญชี</b><p>เพิ่มเพื่อนใหม่ เล่าเรื่องซ้ำ</p></div>
+        <div class="handoff"><span>Claims</span><i>→</i><span>Legal</span><small>ส่งต่อกันภายใน ลูกค้าไม่ต้องย้าย</small></div>
+        <div class="walker" id="walker" style="left:140px;top:170px">
+          <div class="bubble" id="bubble"></div>
+          <svg class="face" viewBox="0 0 84 84" aria-hidden="true">
+            <circle cx="42" cy="42" r="38" class="face-ring"/>
+            <circle cx="42" cy="44" r="27" fill="#ffd9b8"/>
+            <path d="M16 36c2-16 14-22 26-22s24 6 26 22c-6-8-14-11-26-11S22 28 16 36z" fill="#3a2a22"/>
+            <circle cx="33" cy="44" r="3.4" fill="#2a1f1a"/><circle cx="51" cy="44" r="3.4" fill="#2a1f1a"/>
+            <path id="mouth" d="M32 56 L52 56" stroke="#2a1f1a" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+          </svg>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · สถานการณ์ตัวอย่าง</span><span>Customer Journey</span></div>
+      <div class="story-sum" id="storySum" aria-live="polite"></div>
+      <div class="foot"><span>Jacky Central · สถานการณ์ตัวอย่าง ตัวเลขในแถบสรุปเป็นของตัวอย่างนี้เท่านั้น</span><span>Customer Journey</span></div>
     </section>
 
     <!-- 5. Inbox -->
@@ -568,6 +615,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
     prev.disabled = i === 0;
     next.disabled = i === slides.length - 1;
     notesText.textContent = slides[i].dataset.notes || '';
+    document.dispatchEvent(new CustomEvent('deck:show', { detail: { el: slides[i] } }));
     const h = '#s' + (i + 1);
     if (location.hash !== h) history.replaceState(null, '', h);
   }
@@ -583,6 +631,7 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
   });
   document.addEventListener('keydown', (e) => {
     if (e.target.closest && e.target.closest('input, textarea, select')) return;
+    if (e.key === ' ' && e.target.closest && e.target.closest('button, a')) return;
     if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
     else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
     else if (e.key === 'Home') show(0);
@@ -637,5 +686,127 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
   }
   ids.forEach((k) => $('c-' + k).addEventListener('input', update));
   update();
+})();
+</script>
+<script>
+// Animated customer journey (slide 5). Plays "today", then "Jacky Central"; presenter can switch or replay.
+(() => {
+  const scene = document.getElementById('scene');
+  if (!scene) return;
+  const section = scene.closest('section');
+  const walker = document.getElementById('walker');
+  const bubble = document.getElementById('bubble');
+  const mouth = document.getElementById('mouth');
+  const done = document.getElementById('roadDone');
+  const sum = document.getElementById('storySum');
+  const detour = scene.querySelector('.detour');
+  const handoff = scene.querySelector('.handoff');
+  const stations = [...scene.querySelectorAll('.station')];
+  const modeBtns = [...section.querySelectorAll('.story-mode')];
+  const X = [140, 430, 720, 1010, 1300];
+  const Y = 170;
+  const MOUTH = { good: 'M30 53 Q42 64 54 53', meh: 'M31 56 L53 56', bad: 'M30 60 Q42 49 54 60' };
+  const STORY = {
+    today: {
+      caps: ['รอจนกว่าคนดูแลบัญชีนี้จะว่าง', 'ถูกถามข้อมูลซ้ำ ไม่รู้ใครดูแล', 'ถูกบอกให้ไปทัก OA อีกบัญชี', 'ต้องทักถามความคืบหน้าเอง', 'ครั้งหน้าต้องเริ่มเล่าใหม่'],
+      steps: [
+        { st: 0, say: 'แจ้งเคลมรถค่ะ… ยังไม่มีใครตอบเลย', mood: 'meh' },
+        { st: 1, say: 'ต้องเล่าใหม่อีกแล้วเหรอ', mood: 'bad' },
+        { st: 2, say: 'ให้ไปทัก OA ไหนนะ?', mood: 'bad' },
+        { detour: true, say: 'เล่าเรื่องใหม่ตั้งแต่ต้น…', mood: 'bad' },
+        { st: 3, say: 'เรื่องไปถึงไหนแล้วคะ?', mood: 'bad' },
+        { st: 4, say: 'จบแล้วใช่ไหม…', mood: 'meh' },
+      ],
+      sum: ['เล่าเรื่อง 3 ครั้ง', 'ย้าย OA 1 ครั้ง', 'ทักตามเอง 2 ครั้ง'],
+    },
+    jc: {
+      caps: ['แชตเข้า Inbox กลาง ทีมเห็นทันที', 'ได้ PIC ตามหัวข้อ หรือคนที่เคยดูแล', 'ทีมส่งต่อกันภายใน ลูกค้าอยู่ OA เดิม', 'ระบบเตือนทีมก่อนเกิน SLA', 'ประวัติครบ ครั้งหน้ารู้จักกันทันที'],
+      steps: [
+        { st: 0, say: 'ทักปุ๊บ มีคนตอบเลย', mood: 'good' },
+        { st: 1, say: 'มีคนดูแลเรื่องเราชัดเจน', mood: 'good' },
+        { st: 2, say: 'ไม่ต้องเล่าใหม่ ดีจัง', mood: 'good', handoff: true },
+        { st: 3, say: 'ทีมแจ้งความคืบหน้าให้เอง', mood: 'good' },
+        { st: 4, say: 'จบไว ครั้งหน้าก็รู้จักเรา', mood: 'good' },
+      ],
+      sum: ['เล่าเรื่องครั้งเดียว', 'อยู่ OA เดิมตลอด', 'ไม่ต้องทักตาม'],
+    },
+  };
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timer = null;
+  let mode = 'today';
+  let chain = true; // after "today" finishes, play "jc" automatically
+
+  function setMode(m) {
+    mode = m;
+    scene.dataset.mode = m;
+    sum.dataset.mode = m;
+    modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+    stations.forEach((s, k) => { s.classList.remove('done'); s.querySelector('.st-cap').textContent = STORY[m].caps[k]; });
+    detour.classList.remove('show');
+    scene.classList.remove('detoured');
+    handoff.classList.remove('show');
+    sum.classList.remove('show');
+    sum.innerHTML = STORY[m].sum.map((t) => `<span>${t}</span>`).join('');
+    place(X[0], Y, '', 'meh');
+    done.setAttribute('d', `M${X[0]} ${Y} L${X[0]} ${Y}`);
+  }
+  function place(x, y, say, mood) {
+    walker.style.left = x + 'px';
+    walker.style.top = y + 'px';
+    walker.dataset.mood = mood;
+    mouth.setAttribute('d', MOUTH[mood]);
+    bubble.textContent = say;
+    bubble.classList.remove('pop');
+    void bubble.offsetWidth;
+    if (say) bubble.classList.add('pop');
+  }
+  function apply(step, upTo) {
+    if (step.detour) {
+      detour.classList.add('show');
+      scene.classList.add('detoured');
+      place(860, 360, step.say, step.mood);
+      return;
+    }
+    stations[step.st].classList.add('done');
+    if (step.handoff) handoff.classList.add('show');
+    done.setAttribute('d', `M${X[0]} ${Y} L${X[step.st]} ${Y}`);
+    place(X[step.st], Y, step.say, step.mood);
+    void upTo;
+  }
+  function play(m, auto) {
+    clearTimeout(timer);
+    chain = auto;
+    setMode(m);
+    const steps = STORY[m].steps;
+    if (reduce) {
+      steps.forEach((s) => { if (s.detour) { detour.classList.add('show'); scene.classList.add('detoured'); } else stations[s.st].classList.add('done'); if (s.handoff) handoff.classList.add('show'); });
+      const last = steps[steps.length - 1];
+      done.setAttribute('d', `M${X[0]} ${Y} L${X[4]} ${Y}`);
+      place(X[4], Y, last.say, last.mood);
+      sum.classList.add('show');
+      return;
+    }
+    let k = 0;
+    const tick = () => {
+      if (section.hidden) return;
+      if (k < steps.length) {
+        apply(steps[k], k);
+        k += 1;
+        timer = setTimeout(tick, 1900);
+      } else {
+        sum.classList.add('show');
+        if (chain && m === 'today') timer = setTimeout(() => play('jc', false), 2600);
+      }
+    };
+    timer = setTimeout(tick, 500);
+  }
+  modeBtns.forEach((b) => b.addEventListener('click', () => play(b.dataset.mode, false)));
+  document.getElementById('storyReplay').addEventListener('click', () => play(mode, false));
+  document.addEventListener('deck:show', (e) => {
+    if (e.detail.el === section) play('today', true);
+    else clearTimeout(timer);
+  });
+  setMode('today');
+  if (!section.hidden) play('today', true); // opened directly at #s5
 })();
 </script>
