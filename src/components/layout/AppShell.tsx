@@ -13,10 +13,13 @@ import {
   Search,
   ShieldCheck,
   Briefcase,
+  Users,
+  Filter,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report } from '../../store/hooks';
-import { can, canDecideEscalation, canSeeCase, ROLE_LABEL } from '../../utils/permissions';
+import { can, canDecideEscalation, canDecideLink, canSeeCase, ROLE_LABEL } from '../../utils/permissions';
 import { computeSla } from '../../utils/sla';
 import { isCaseOpen } from '../../utils/transitions';
 import { formatDateTime } from '../../utils/time';
@@ -28,6 +31,8 @@ import { ROLES } from '../../types/domain';
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/inbox', label: 'Inbox', icon: Inbox },
+  { to: '/customers', label: 'Customers', icon: Users },
+  { to: '/segments', label: 'Segments', icon: Filter },
   { to: '/cases', label: 'Cases', icon: Briefcase },
   { to: '/escalations', label: 'Escalations', icon: MessageSquareShare },
   { to: '/tasks', label: 'งานภายใน', icon: ClipboardList },
@@ -36,11 +41,16 @@ const NAV = [
 const ADMIN_NAV = [
   { to: '/admin/channels', label: 'LINE OA Channels', icon: Radio },
   { to: '/admin/access', label: 'Roles & Access', icon: ShieldCheck },
+  { to: '/admin/fields', label: 'Custom Fields', icon: SlidersHorizontal },
 ];
 
 const TITLES: [RegExp, string][] = [
   [/^\/$/, 'Dashboard'],
   [/^\/inbox/, 'Unified Inbox'],
+  [/^\/customers\/.+/, 'Customer Profile'],
+  [/^\/customers/, 'Customers'],
+  [/^\/segments/, 'Customer Segments'],
+  [/^\/admin\/fields/, 'Custom Fields'],
   [/^\/cases\/.+/, 'Case Workspace'],
   [/^\/cases/, 'Cases'],
   [/^\/escalations/, 'Internal Escalation'],
@@ -217,7 +227,10 @@ function Notifications() {
     const esc = data.escalations
       .filter((e) => (e.status === 'REQUESTED' || e.status === 'UNDER_REVIEW') && canDecideEscalation(me, e))
       .map((e) => ({ key: e.id, to: `/cases/${e.caseId}?tab=escalation`, text: `Escalation รอพิจารณา: ${data.cases.find((c) => c.id === e.caseId)?.caseNumber ?? ''}` }));
-    return [...esc, ...sla];
+    const links = data.profileLinks
+      .filter((l) => l.status === 'REQUESTED' && canDecideLink(data, me, l))
+      .map((l) => ({ key: l.id, to: '/customers?view=links', text: `คำขอเชื่อมโปรไฟล์รออนุมัติ: ${data.customers.find((c) => c.id === l.customerAId)?.displayName ?? ''}` }));
+    return [...esc, ...links, ...sla];
   }, [data, now, me]);
 
   return (

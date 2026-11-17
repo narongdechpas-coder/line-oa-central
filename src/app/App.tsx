@@ -10,6 +10,10 @@ import { ReportsPage } from '../features/reports/ReportsPage';
 import { ChannelsPage } from '../features/channels/ChannelsPage';
 import { AccessControlPage } from '../features/access-control/AccessControlPage';
 import { NotFoundPage } from './NotFoundPage';
+import { CustomersPage } from '../features/customers/CustomersPage';
+import { CustomerProfilePage } from '../features/customers/CustomerProfilePage';
+import { SegmentsPage } from '../features/segments/SegmentsPage';
+import { CustomFieldsPage } from '../features/custom-fields/CustomFieldsPage';
 
 export function App() {
   return (
@@ -19,6 +23,9 @@ export function App() {
           <Route index element={<DashboardPage />} />
           <Route path="inbox" element={<InboxPage />} />
           <Route path="inbox/:conversationId" element={<InboxPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/:customerId" element={<CustomerProfilePage />} />
+          <Route path="segments" element={<SegmentsPage />} />
           <Route path="cases" element={<CasesPage />} />
           <Route path="cases/:caseId" element={<CaseWorkspacePage />} />
           <Route path="escalations" element={<EscalationsPage />} />
@@ -26,6 +33,7 @@ export function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="admin/channels" element={<ChannelsPage />} />
           <Route path="admin/access" element={<AccessControlPage />} />
+          <Route path="admin/fields" element={<CustomFieldsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

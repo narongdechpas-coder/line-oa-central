@@ -24,6 +24,7 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
   const [selected, setSelected] = useState<string>(ranked.find((r) => r.userId !== c.currentOwnerId)?.userId ?? '');
   const [reason, setReason] = useState('');
   const isOverride = !!selected && ranked[0]?.userId !== selected;
+  const customerOwner = data.customers.find((x) => x.id === c.originalCustomerId)?.ownerUserId ?? null;
 
   const submit = () => {
     if (!selected) return;
@@ -44,7 +45,7 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
     >
       <p className="muted small">
         คะแนนแนะนำ = ทักษะ 35% + ภาระงาน 30% + ความพร้อม 20% + ประสบการณ์ 15% · ผู้สมัครคือ PIC / Supervisor ของแผนก {L.depName(c.currentDepartmentId)}{' '}
-        <DemoTag>DEMO LOGIC</DemoTag> คะแนนใช้ประกอบการตัดสินใจเท่านั้น ผู้จัดการเป็นคนยืนยัน
+        <DemoTag>DEMO LOGIC</DemoTag> คะแนนใช้ประกอบการตัดสินใจเท่านั้น ผู้จัดการเป็นคนยืนยัน · ป้าย “ผู้ดูแลหลักของลูกค้า” เป็นข้อมูลประกอบ ไม่ได้บวกคะแนน
       </p>
       {ranked.length === 0 ? (
         <EmptyState title="ไม่มี PIC ที่มอบหมายได้ในแผนกนี้" hint="ถ้าต้องการให้แผนกอื่นช่วย ให้ใช้ Escalate" />
@@ -62,6 +63,7 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
                   <strong>{u.name}</strong>
                   {r.recommended && <Chip tone="blue"><Star size={11} aria-hidden="true" /> แนะนำ</Chip>}
                   {current && <Chip tone="gray">PIC ปัจจุบัน</Chip>}
+                  {customerOwner === r.userId && <Chip tone="purple">ผู้ดูแลหลักของลูกค้า</Chip>}
                   <div className="muted small">
                     {L.teamName(u.teamId)} · {u.role === 'SUPERVISOR' ? 'Supervisor' : 'PIC'} · {AVAILABILITY_LABEL[u.availability]} · ภาระงาน {u.workload}% · {u.experienceYears} ปี
                   </div>

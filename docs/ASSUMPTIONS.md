@@ -50,6 +50,36 @@ Decisions taken where the handover did not define behaviour. Items marked **(ope
 - PIC may reply only on conversations assigned to them, and change only cases they own.
 - System Admin and Auditor are read-only for case work. Reports hidden from PIC.
 
+## Customer Management / CDP-lite
+- **No merge.** Customer identity stays `(channelId, lineUserId)`. Cross-OA views use governed links only.
+- **Consent per OA (example text, not legal wording).** Each notice lists purposes (required vs. optional)
+  and data categories. Linking needs the optional purpose `CROSS_SERVICE_LINKING` on **both** profiles.
+- **Purpose limitation in Customer 360.** A linked profile shows only the data categories in its own
+  notice (e.g. a Sales OA profile never exposes policy or claim data). Only APPROVED links count.
+- **Approver:** Manager of the department owning either OA, or Super Admin; never the requester.
+  Consent is re-checked at approval.
+- **Withdrawal:** withdrawing the linking purpose suspends approved links and auto-rejects pending ones.
+  Re-granting does not restore a link — a new request and approval are needed.
+- **Demo limits:** only optional purposes can be toggled, through a "simulate customer action" control
+  (staff never change consent for a customer). Full withdrawal of required purposes is not modelled.
+- **Customer Owner** (relationship, long-term) is separate from case **PIC**. The owner must be in the
+  department that owns the customer's OA. In PIC assignment the owner gets a badge only — the score keeps
+  the spec weights (35/30/20/15).
+- **PII:** phone numbers and PII custom fields are masked; every reveal is audited. Auditor may reveal
+  (audited) but cannot edit. System Admin cannot reveal.
+- **Custom fields:** Department Admins manage fields for their own OA only. Key and type cannot change
+  after creation; deactivating hides a field but keeps stored values.
+- **Segments** are evaluated live, limited to the viewer's scope, and are view-only (no broadcast).
+  PII fields cannot be used as segment rules.
+- LINE display name and LINE User ID are read-only (they come from LINE).
+- Persisted state version is 2; older saved demo state resets to the seed.
+
+## For Legal / DPO review
+- Legal basis for processing for service delivery (consent or another PDPA basis).
+- Wording of consent notices, purposes and retention periods.
+- Whether withdrawing consent should affect open cases.
+- Which policy data customer service may see.
+
 ## Known limitations
 - No backend, no multi-user sync: each browser has its own state.
 - Attachments are placeholders; no upload/download.
