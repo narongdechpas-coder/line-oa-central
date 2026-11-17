@@ -1,0 +1,596 @@
+<title>Jacky Central · Presentation</title>
+<meta name="description" content="Jacky Central: ระบบดูแลแชต LINE OA หลายบัญชีและส่งต่องานข้ามแผนก สำหรับบริษัทประกันวินาศภัย">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: fixed 1600x900 slide canvas scaled to the screen; same visual language as the InsureFlow deck.
+   Deliberately a single light look (a projected deck), so every colour is set explicitly. */
+:root {
+  --ink: #12302a; --ink-2: #485953; --grey: #6f7f79; --accent: #0d7a59; --warm: #ff8a3d; --warm-ink: #8a3a00;
+  --risk: #b42323; --risk-bg: #fbe1df; --soft: #dff2e9; --cream: #fffaf3; --stage: #e4ede8;
+  --display: 'Mitr', 'IBM Plex Sans Thai', 'Leelawadee UI', Tahoma, sans-serif;
+  --body: 'IBM Plex Sans Thai', 'Leelawadee UI', Tahoma, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--stage); color: var(--ink); font-family: var(--body); overflow: hidden; -webkit-font-smoothing: antialiased; }
+.deck { position: fixed; inset: 0; }
+.deck-canvas { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; transform-origin: center; overflow: hidden; background: #fff; box-shadow: 0 20px 60px rgba(18, 48, 42, 0.18); }
+.deck-progress { position: absolute; left: 0; top: 0; height: 6px; background: var(--warm); z-index: 5; transition: width 0.3s; }
+.deck-app { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); z-index: 10; display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px; background: rgba(255, 255, 255, 0.92); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); }
+.deck-nav { position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 999px; background: rgba(18, 48, 42, 0.9); color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); transition: opacity 0.3s, transform 0.3s; white-space: nowrap; }
+.deck-nav.hide { opacity: 0; transform: translate(-50%, 12px); pointer-events: none; }
+.deck-nav button { border: 0; background: none; color: #fff; font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+.deck-nav button:hover:not(:disabled), .deck-nav button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.16); }
+.deck-nav button:disabled { opacity: 0.35; cursor: default; }
+.deck-nav button:focus-visible, .deck-app:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.deck-count { padding: 0 6px; font-size: 14px; min-width: 4em; text-align: center; font-variant-numeric: tabular-nums; }
+.deck-notes { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9; max-height: 30vh; overflow: auto; padding: 14px max(24px, env(safe-area-inset-left, 0px)) calc(70px + env(safe-area-inset-bottom, 0px)); background: rgba(8, 30, 24, 0.96); color: #e6eeea; border-top: 3px solid var(--warm); font-size: 16px; line-height: 1.6; }
+.deck-notes b { color: var(--warm); font-size: 13px; letter-spacing: 0.04em; }
+.deck-notes p { margin: 4px 0 0; max-width: 1100px; }
+
+/* ---------- slide parts ---------- */
+.sl { position: absolute; inset: 0; }
+.sl[hidden] { display: none !important; }
+.frame { display: flex; flex-direction: column; padding: 46px 76px 0; background: linear-gradient(160deg, #f4f8f6 0%, #dff2e9 100%); }
+.kicker { display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 600; color: var(--accent); letter-spacing: 0.02em; }
+.pill { display: inline-flex; padding: 3px 12px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 15px; font-variant-numeric: tabular-nums; }
+.badge { display: inline-flex; padding: 3px 10px; border-radius: 6px; background: #ffeadb; color: var(--warm-ink); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; }
+.title { margin: 14px 0 0; font-family: var(--display); font-size: 44px; line-height: 1.25; font-weight: 500; color: var(--ink); text-wrap: balance; }
+.body { flex: 1; min-height: 0; padding: 26px 0 18px; margin-bottom: 52px; display: flex; flex-direction: column; gap: 18px; }
+.foot { position: absolute; left: 76px; right: 76px; bottom: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(18, 48, 42, 0.14); font-size: 14px; color: var(--grey); }
+.card { padding: 22px 24px; border-radius: 16px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); border: 1px solid rgba(18, 48, 42, 0.06); min-height: 0; }
+.card h3 { margin: 0 0 12px; font-family: var(--display); font-weight: 500; font-size: 25px; color: var(--ink); }
+.bullets { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 14px; font-size: 22px; line-height: 1.5; color: var(--ink-2); }
+.shot { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid rgba(18, 48, 42, 0.15); box-shadow: 0 14px 36px rgba(18, 48, 42, 0.18); background: #fff; }
+.shot img { display: block; width: 100%; height: auto; }
+.rule { padding: 14px 20px; border-radius: 12px; background: var(--soft); border: 1px solid #b9e2cf; color: var(--ink); font-size: 20px; line-height: 1.45; }
+.rule b { color: var(--accent); margin-right: 10px; }
+.limit { padding: 12px 16px; border-radius: 12px; background: #ffeadb; color: #6b3200; font-size: 16px; line-height: 1.5; }
+.limit b { display: block; font-size: 13px; letter-spacing: 0.04em; color: var(--warm-ink); margin-bottom: 2px; }
+.ai-tag { position: absolute; left: 14px; bottom: 14px; padding: 3px 9px; border-radius: 5px; background: rgba(8, 30, 24, 0.72); color: #fff; font-size: 13px; }
+.ai-slot { position: relative; overflow: hidden; border-radius: 16px; }
+.ai-slot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ai-ph { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; border: 3px dashed #9fcfb9; border-radius: 16px; background: repeating-linear-gradient(135deg, #f1faf5 0 18px, #e6f5ed 18px 36px); color: var(--accent); font-size: 18px; }
+.ai-ph b { font-family: var(--display); font-weight: 500; font-size: 24px; }
+
+/* ---------- 1. cover ---------- */
+.cover { background: radial-gradient(900px 620px at 82% 34%, #cdeedd 0%, rgba(205, 238, 221, 0) 70%), linear-gradient(120deg, var(--cream) 0%, #f3f8f2 55%, #dff2e9 100%); }
+.cover .ai-slot { position: absolute; inset: 0; border-radius: 0; }
+.cover .ai-ph { position: absolute; right: 70px; top: 90px; width: 560px; height: 420px; }
+.cover-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 250, 243, 0.97) 0%, rgba(255, 250, 243, 0.85) 45%, rgba(255, 250, 243, 0) 75%); }
+.cover-body { position: absolute; left: 96px; top: 84px; width: 900px; display: flex; flex-direction: column; gap: 14px; }
+.cover-logo { width: 116px; height: 116px; filter: drop-shadow(0 6px 14px rgba(13, 122, 89, 0.22)); }
+.cover-kicker { margin: 6px 0 0; font-size: 17px; font-weight: 600; letter-spacing: 0.12em; color: var(--accent); }
+.cover-title { margin: 0; font-family: var(--display); font-size: 104px; line-height: 1.08; font-weight: 600; letter-spacing: -0.01em; }
+.cover-promise { margin: 0; font-family: var(--display); font-size: 38px; font-weight: 500; color: #d4621a; }
+.cover-tag { margin: 4px 0 0; font-size: 25px; line-height: 1.5; color: var(--ink-2); }
+.cover-tag span { display: block; }
+.cover-cards { position: absolute; left: 96px; right: 96px; bottom: 76px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.cover-card { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.9); border: 1px solid #dce5e0; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.cover-card b { font-size: 21px; color: var(--ink); }
+.cover-card span { font-size: 16px; color: var(--ink-2); line-height: 1.45; }
+.cover-card i { font-style: normal; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
+.cover .foot { left: 96px; right: 96px; }
+
+/* ---------- 2. summary ---------- */
+.sum { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.ask { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 22px; counter-reset: ask; }
+.ask li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; font-size: 21px; line-height: 1.45; color: var(--ink-2); }
+.ask li::before { counter-increment: ask; content: counter(ask); display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--warm); color: #fff; font-weight: 700; font-size: 19px; }
+.ask b { color: var(--ink); display: block; font-size: 23px; }
+
+/* ---------- 3. problem ---------- */
+.prob-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 470px; gap: 24px; }
+.prob { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px; min-height: 0; }
+.prob-card { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 20px 22px; border-radius: 16px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.prob-n { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: var(--risk-bg); color: var(--risk); font-weight: 700; font-size: 20px; }
+.prob-card b { font-size: 28px; line-height: 1.3; color: var(--ink); }
+.prob-card p { margin: 0; font-size: 21px; line-height: 1.5; color: var(--ink-2); }
+
+/* ---------- 4. solution map ---------- */
+.map-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 520px; gap: 28px; }
+.map { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.map li { flex: 1; display: grid; grid-template-columns: 1fr 40px 1.35fr; align-items: center; gap: 14px; padding: 14px 22px; border-radius: 14px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.map-pain { font-size: 19px; color: var(--grey); text-decoration: line-through; text-decoration-color: rgba(180, 35, 35, 0.5); }
+.map-arrow { color: var(--warm); font-size: 26px; text-align: center; }
+.map-fix { font-size: 22px; line-height: 1.35; color: var(--accent); font-weight: 600; }
+.principle { display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 30px; border-radius: 18px; background: var(--accent); color: #fff; }
+.principle i { font-style: normal; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; opacity: 0.85; }
+.principle b { font-family: var(--display); font-weight: 500; font-size: 36px; line-height: 1.35; }
+.principle p { margin: 0; font-size: 19px; line-height: 1.55; opacity: 0.92; }
+
+/* ---------- 5-9. features ---------- */
+.feat { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 470px; gap: 28px; align-items: center; }
+.feat.narrow-shot { grid-template-columns: 600px 1fr; }
+.feat-side { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.steps li { display: flex; gap: 16px; align-items: center; padding: 14px 20px; border-radius: 14px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.step-n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 19px; }
+.steps b { display: block; font-size: 21px; line-height: 1.35; color: var(--ink); }
+.steps p { margin: 4px 0 0; font-size: 16.5px; line-height: 1.45; color: var(--ink-2); }
+
+/* ---------- 10. trust ---------- */
+.trust { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 20px; }
+.table { width: 100%; border-collapse: collapse; font-size: 19px; }
+.table th { text-align: left; font-size: 14px; font-weight: 600; color: var(--grey); padding: 0 8px 8px 0; border-bottom: 1px solid rgba(18, 48, 42, 0.14); }
+.table td { padding: 11px 8px 11px 0; border-bottom: 1px solid rgba(18, 48, 42, 0.08); color: var(--ink); vertical-align: top; line-height: 1.4; }
+.trust .bullets { font-size: 20px; gap: 18px; }
+
+/* ---------- 11. plan ---------- */
+.plan { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.phase { display: flex; flex-direction: column; }
+.phase-tag { align-self: flex-start; margin-bottom: 12px; padding: 4px 14px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; }
+.phase h3 { font-size: 30px; line-height: 1.3; margin-bottom: 14px; }
+.phase .bullets { font-size: 22px; gap: 16px; }
+.measure { margin-top: auto; padding: 14px 18px; border-radius: 12px; background: var(--soft); color: var(--ink); font-size: 19px; line-height: 1.45; }
+.measure b { display: block; font-size: 13px; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 4px; }
+.plan-strip { position: absolute; right: 76px; top: 24px; width: 260px; height: 118px; }
+.plan-strip .ai-ph { font-size: 14px; padding: 10px; }
+.plan-strip .ai-ph b { font-size: 17px; }
+.terms { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 20px; border-radius: 14px; background: #ffeadb; color: #6b3200; font-size: 17px; }
+.terms b { color: var(--warm-ink); }
+@media (prefers-reduced-motion: reduce) { .deck-progress, .deck-nav { transition: none; } }
+
+/* ---------- sales deck additions ---------- */
+.win { padding: 14px 18px; border-radius: 12px; background: var(--soft); border: 1px solid #b9e2cf; color: var(--ink); font-size: 18px; line-height: 1.5; }
+.win b { display: block; font-size: 13px; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 2px; }
+/* calculator */
+.calc { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; }
+.calc-in { display: flex; flex-direction: column; gap: 16px; }
+.calc-in h3 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.slider { display: flex; flex-direction: column; gap: 4px; }
+.slider label { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 19px; color: var(--ink-2); }
+.slider label b { font-size: 24px; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slider input[type=range] { width: 100%; height: 26px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.slider.assume { padding: 10px 14px; border-radius: 12px; background: #ffeadb; }
+.slider.assume input[type=range] { accent-color: #c8561a; }
+.calc-out { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr auto; gap: 14px; }
+.out { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 18px 22px; border-radius: 16px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.out span { font-size: 17px; color: var(--ink-2); }
+.out b { font-size: 46px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.out.good { background: var(--accent); }
+.out.good span { color: rgba(255, 255, 255, 0.85); }
+.out.good b { color: #fff; }
+.formula { grid-column: 1 / -1; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--grey); }
+/* roles */
+.roles { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.role { display: flex; flex-direction: column; gap: 6px; }
+.role i { font-style: normal; align-self: flex-start; padding: 3px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); font-weight: 700; font-size: 15px; }
+.role h3 { margin: 8px 0 12px; font-size: 27px; line-height: 1.3; }
+.role .bullets { font-size: 21px; }
+/* rollout */
+.rollout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; }
+.steps.compact { gap: 10px; }
+.steps.compact li { box-shadow: none; border: 1px solid rgba(18, 48, 42, 0.1); padding: 10px 16px; }
+.steps.compact b { font-size: 20px; }
+.steps.compact p { font-size: 16px; }
+.table.ready td:first-child { color: var(--accent); font-weight: 600; }
+.table.ready td { font-size: 18px; padding: 10px 10px 10px 0; }
+/* closing */
+.cta { background: radial-gradient(900px 620px at 85% 40%, #cdeedd 0%, rgba(205, 238, 221, 0) 70%), linear-gradient(120deg, var(--cream) 0%, #f3f8f2 55%, #dff2e9 100%); }
+.cta .ai-slot { position: absolute; inset: 0; border-radius: 0; }
+.cta .ai-ph { position: absolute; right: 70px; top: 120px; width: 520px; height: 400px; }
+.cta-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 250, 243, 0.97) 0%, rgba(255, 250, 243, 0.88) 48%, rgba(255, 250, 243, 0) 78%); }
+.cta-body { position: absolute; left: 96px; top: 96px; width: 860px; display: flex; flex-direction: column; gap: 18px; }
+.cta-logo { width: 96px; height: 96px; filter: drop-shadow(0 6px 14px rgba(13, 122, 89, 0.22)); }
+.cta-title { margin: 0; font-family: var(--display); font-size: 60px; line-height: 1.2; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.cta-sub { margin: 0; font-size: 26px; color: #d4621a; font-family: var(--display); font-weight: 500; }
+.cta-steps { margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; counter-reset: cta; }
+.cta-steps li { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; column-gap: 16px; padding: 14px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.9); border: 1px solid #dce5e0; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.cta-steps li::before { counter-increment: cta; content: counter(cta); grid-row: 1 / 3; align-self: center; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 21px; }
+.cta-steps b { font-size: 23px; color: var(--ink); }
+.cta-steps span { font-size: 18px; color: var(--ink-2); }
+.cta .foot { left: 96px; right: 96px; }
+.prob-wrap .ai-slot img { object-position: 32% 50%; }
+.cover .ai-slot img, .cta .ai-slot img { object-position: 70% 50%; }
+.cover .ai-tag, .cta .ai-tag { left: auto; right: 24px; bottom: 64px; }
+</style>
+
+<div class="deck" id="deck">
+  <div class="deck-canvas" id="canvas">
+    <div class="deck-progress" id="progress"></div>
+
+    <!-- 1. Cover -->
+    <section class="sl cover" data-notes="เปิดด้วยสิ่งที่ระบบสัญญา: บริษัทที่มี LINE OA หลายบัญชีจะดูแลทุกแชตได้จากที่เดียว และเรื่องที่ต้องส่งต่อข้ามแผนกจะไม่หลุดมือ ลูกค้าปลายทางยังคุยผ่าน OA เดิมเหมือนทุกวันนี้">
+      <div class="ai-slot">{{AI:cover}}</div>
+      <div class="cover-shade"></div>
+      <div class="cover-body">
+        <img class="cover-logo" src="{{IMG:logo}}" alt="Jacky">
+        <p class="cover-kicker">CENTRAL COMMUNICATION &amp; CASE MANAGEMENT · สำหรับบริษัทประกันวินาศภัย</p>
+        <h1 class="cover-title">Jacky Central</h1>
+        <p class="cover-promise">ทุก LINE&nbsp;OA ในที่เดียว ส่งต่องานไม่หลุดมือ</p>
+        <p class="cover-tag"><span>ลูกค้าของคุณคุยผ่าน LINE OA เดิม</span><span>ทีมของคุณเห็นทุกแชต ส่งเรื่องถึงคนที่ถูก และติดตาม SLA ได้ในที่เดียว</span></p>
+      </div>
+      <div class="cover-cards">
+        <div class="cover-card"><i>INBOX</i><b>รวมแชตทุก OA</b><span>ตอบผ่านช่องทางเดิมเสมอ</span></div>
+        <div class="cover-card"><i>ROUTING</i><b>ส่งเรื่องตามหัวข้อ</b><span>ถึงแผนกและ PIC ที่ถูกคน</span></div>
+        <div class="cover-card"><i>ESCALATION</i><b>ส่งต่อข้ามแผนก</b><span>มีสถานะ มีคนรับ มีประวัติ</span></div>
+        <div class="cover-card"><i>CUSTOMER 360</i><b>เห็นลูกค้าครบ</b><span>ภายใต้ขอบเขต consent</span></div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอในเอกสารนี้มาจากระบบเดโม ข้อมูลลูกค้าทั้งหมดเป็นข้อมูลจำลอง</span><span>Jacky Central</span></div>
+    </section>
+
+    <!-- 2. Problem -->
+    <section class="sl frame" hidden data-notes="ถามผู้ฟังก่อนว่ามี LINE OA กี่บัญชี และใครดูแลแต่ละบัญชี ปัญหา 4 ข้อนี้มักเกิดเมื่อแต่ละแผนกเปิด OA ของตัวเอง ให้ผู้ฟังเลือกข้อที่ตรงกับตัวเองที่สุด แล้วโยงไปสไลด์ถัดไป">
+      <div class="kicker"><span class="pill">02</span>ปัญหาที่พบบ่อย</div>
+      <h2 class="title">ยิ่งมี LINE&nbsp;OA หลายบัญชี เรื่องของลูกค้ายิ่งตกหล่นระหว่างแผนก</h2>
+      <div class="body">
+        <div class="prob-wrap">
+          <div class="prob">
+            <div class="prob-card"><span class="prob-n">1</span><b>แชตแยกตาม OA</b><p>แต่ละแผนกเห็นแค่ OA ของตัวเอง ไม่มีใครเห็นภาพรวมของลูกค้า</p></div>
+            <div class="prob-card"><span class="prob-n">2</span><b>ไม่รู้ใครเป็นเจ้าของเรื่อง</b><p>มอบงานกันผ่านแชตส่วนตัว ย้อนดูไม่ได้ว่าใครรับเรื่องเมื่อไร</p></div>
+            <div class="prob-card"><span class="prob-n">3</span><b>ส่งต่อข้ามแผนกแล้วหาย</b><p>ไม่มีสถานะ ไม่รู้ว่าอีกแผนกรับเรื่องหรือยัง และค้างอยู่ที่ใคร</p></div>
+            <div class="prob-card"><span class="prob-n">4</span><b>ผู้บริหารไม่เห็น SLA</b><p>รู้ว่าเคสล่าช้าก็ต่อเมื่อลูกค้าร้องเรียนแล้ว</p></div>
+          </div>
+          <div class="ai-slot">{{AI:problem}}</div>
+        </div>
+        <div class="rule"><b>ต้นเหตุ</b>ไม่มีที่กลางที่ผูก แชต → เรื่อง → เจ้าของ → สถานะ ไว้ด้วยกัน</div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ปัญหา</span></div>
+    </section>
+
+    <!-- 3. Calculator -->
+    <section class="sl frame" hidden data-notes="ให้ผู้ฟังบอกตัวเลขของบริษัทเอง แล้วเลื่อนแถบตามนั้น ค่าตั้งต้นเป็นตัวเลขสมมติ ไม่ใช่ข้อมูลอุตสาหกรรม ช่องสุดท้ายคือสมมติฐานว่าระบบช่วยลดเวลาได้เท่าไร ให้ผู้ฟังเป็นคนกำหนดเอง">
+      <div class="kicker"><span class="pill">03</span>ต้นทุนของปัญหา</div>
+      <h2 class="title">ปัญหานี้มีต้นทุนที่วัดได้ ลองคำนวณด้วยตัวเลขของคุณ</h2>
+      <div class="body">
+        <div class="calc">
+          <div class="card calc-in">
+            <h3>ตัวเลขของบริษัทคุณ <span class="badge">ค่าตั้งต้นเป็นตัวเลขสมมติ</span></h3>
+            <div class="slider"><label for="c-chats"><span>แชตทั้งหมดต่อเดือน (ทุก OA)</span><b id="v-chats"></b></label><input id="c-chats" type="range" min="500" max="50000" step="500" value="6000"></div>
+            <div class="slider"><label for="c-share"><span>สัดส่วนแชตที่ต้องส่งต่อข้ามแผนก</span><b id="v-share"></b></label><input id="c-share" type="range" min="1" max="60" step="1" value="20"></div>
+            <div class="slider"><label for="c-mins"><span>เวลาที่เสียต่อการส่งต่อ 1 ครั้ง (ตามหาเจ้าของ เล่าเรื่องซ้ำ)</span><b id="v-mins"></b></label><input id="c-mins" type="range" min="1" max="60" step="1" value="15"></div>
+            <div class="slider"><label for="c-wage"><span>ต้นทุนพนักงานต่อชั่วโมง</span><b id="v-wage"></b></label><input id="c-wage" type="range" min="100" max="1000" step="10" value="250"></div>
+            <div class="slider assume"><label for="c-cut"><span>สมมติฐาน: ระบบลดเวลาส่วนนี้ได้</span><b id="v-cut"></b></label><input id="c-cut" type="range" min="0" max="90" step="5" value="50"></div>
+          </div>
+          <div class="calc-out">
+            <div class="out"><span>ชั่วโมงที่ใช้กับการส่งต่อ ต่อเดือน</span><b id="o-hours"></b></div>
+            <div class="out"><span>ต้นทุนต่อเดือน</span><b id="o-cost"></b></div>
+            <div class="out good"><span>ชั่วโมงที่ได้คืน ต่อเดือน</span><b id="o-saved"></b></div>
+            <div class="out good"><span>มูลค่าเวลาที่ได้คืน ต่อปี</span><b id="o-year"></b></div>
+            <p class="formula">ชั่วโมง = แชต × สัดส่วนที่ส่งต่อ × นาทีต่อครั้ง ÷ 60 · ต้นทุน = ชั่วโมง × ต้นทุนต่อชั่วโมง · ได้คืน = ชั่วโมง × สมมติฐานที่ลดได้ · ผลลัพธ์จริงขึ้นกับกระบวนการของแต่ละบริษัท</p>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ตัวคำนวณ</span></div>
+    </section>
+
+    <!-- 4. Concept -->
+    <section class="sl frame" hidden data-notes="หลักของระบบคือ สิ่งที่ย้ายระหว่างแผนกคือความรับผิดชอบภายใน ช่องทางที่ลูกค้าคุยไม่เปลี่ยน ลูกค้าไม่ต้องเพิ่มเพื่อน OA ใหม่ และไม่ต้องเล่าเรื่องซ้ำ">
+      <div class="kicker"><span class="pill">04</span>แนวคิด</div>
+      <h2 class="title">Jacky Central คือศูนย์กลางที่ลูกค้าไม่ต้องเปลี่ยนช่องทาง</h2>
+      <div class="body">
+        <div class="map-wrap">
+          <ul class="map">
+            <li><span class="map-pain">แชตแยกตาม OA</span><span class="map-arrow" aria-hidden="true">→</span><span class="map-fix">Unified Inbox รวมทุก OA ตอบผ่าน OA เดิมเสมอ</span></li>
+            <li><span class="map-pain">ไม่รู้ใครเป็นเจ้าของเรื่อง</span><span class="map-arrow" aria-hidden="true">→</span><span class="map-fix">Case มี PIC คนเดียว พร้อมประวัติการมอบหมาย</span></li>
+            <li><span class="map-pain">ส่งต่อข้ามแผนกแล้วหาย</span><span class="map-arrow" aria-hidden="true">→</span><span class="map-fix">Escalation มีสถานะ ต้องมีคนกดรับ และมีงานภายในให้ติดตาม</span></li>
+            <li><span class="map-pain">ผู้บริหารไม่เห็น SLA</span><span class="map-arrow" aria-hidden="true">→</span><span class="map-fix">Dashboard, SLA และ Reports ดูได้ทันที</span></li>
+          </ul>
+          <div class="principle">
+            <i>หลักของระบบ</i>
+            <b>สิ่งที่ย้ายคือความรับผิดชอบภายใน ไม่ใช่ช่องทางของลูกค้า</b>
+            <p>Case ส่งต่อไปแผนกไหนก็ได้ แต่ LINE OA ต้นทางและตัวตนลูกค้าแก้ไม่ได้ และทุกการตอบกลับใช้ OA เดิม</p>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>แนวคิด</span></div>
+    </section>
+
+    <!-- 5. Inbox -->
+    <section class="sl frame" hidden data-notes="ชี้ให้ดูช่องตอบด้านล่าง ระบบล็อกให้ตอบผ่าน OA เดิม ไม่มีตัวเลือกช่องทาง ทีมจึงไม่ตอบผิดบัญชี">
+      <div class="kicker"><span class="pill">05</span>Unified Inbox</div>
+      <h2 class="title">ทีมเห็นทุกแชตในหน้าจอเดียว ไม่ต้องสลับหลายบัญชี</h2>
+      <div class="body">
+        <div class="feat">
+          <figure class="shot"><img src="{{IMG:inbox}}" alt="หน้าจอ Unified Inbox: รายการแชตจากหลาย OA แชตที่เลือก และข้อมูลลูกค้า"></figure>
+          <div class="feat-side">
+            <ol class="steps">
+              <li><span class="step-n">1</span><div><b>กรองตาม OA สถานะ และ PIC</b><p>แชตจากทุกบัญชีอยู่ในรายการเดียว</p></div></li>
+              <li><span class="step-n">2</span><div><b>ข้อมูลลูกค้าอยู่ข้างแชต</b><p>ผู้ดูแลหลัก สถานะ consent และ Case ที่เกี่ยวข้อง</p></div></li>
+              <li><span class="step-n">3</span><div><b>ช่องตอบล็อกไว้ที่ OA เดิม</b><p>ป้องกันการตอบลูกค้าผิดบัญชี</p></div></li>
+            </ol>
+            <div class="win"><b>ทีมของคุณได้</b>ไม่ต้องเปิดหลายแอปหลายเครื่อง ทุกคนเห็นแชตชุดเดียวกัน</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Unified Inbox</span></div>
+    </section>
+
+    <!-- 6. Routing -->
+    <section class="sl frame" hidden data-notes="ตัวอย่างในภาพ: ลูกค้าทักมาทาง Sales OA เรื่องโปรโมชัน หัวข้อนี้เป็นของ Marketing ผู้ดูแลหลักของลูกค้าอยู่ในรายชื่อ PIC จึงขึ้นเป็นลำดับแรก และระบบส่งเรื่องไป Marketing ให้อัตโนมัติ หัวข้อและรายชื่อ PIC ตั้งค่าตามโครงสร้างของบริษัทลูกค้าเอง">
+      <div class="kicker"><span class="pill">06</span>ส่งเรื่องตามหัวข้อ</div>
+      <h2 class="title">เรื่องถึงคนที่ถูกตั้งแต่ครั้งแรก</h2>
+      <div class="body">
+        <div class="feat narrow-shot">
+          <figure class="shot"><img src="{{IMG:create}}" alt="หน้าจอสร้าง Case: เลือกหัวข้อ แผนกที่รับเรื่อง และรายชื่อ PIC โดยผู้ดูแลหลักขึ้นลำดับแรก"></figure>
+          <div class="feat-side">
+            <ol class="steps">
+              <li><span class="step-n">1</span><div><b>ตั้งค่า แผนก → หัวข้อ → PIC ตามองค์กรคุณ</b><p>หัวข้อหนึ่งมีแผนกรับเรื่อง และแผนกที่ดู log ได้</p></div></li>
+              <li><span class="step-n">2</span><div><b>ผู้ดูแลหลักของลูกค้าขึ้นลำดับแรก</b><p>ลูกค้าได้คุยกับคนที่รู้จักเขาอยู่แล้ว</p></div></li>
+              <li><span class="step-n">3</span><div><b>หัวข้อของแผนกอื่นส่งต่อให้อัตโนมัติ</b><p>แผนกปลายทางต้องกดรับ เรื่องจึงไม่ลอยอยู่กลางทาง</p></div></li>
+            </ol>
+            <div class="win"><b>ทีมของคุณได้</b>ลดการถามต่อกันว่า “เรื่องนี้ใครดูแล” และลดเวลาจนลูกค้าได้คนรับผิดชอบ</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Routing</span></div>
+    </section>
+
+    <!-- 7. Escalation -->
+    <section class="sl frame" hidden data-notes="Escalation เป็นการส่งต่อภายในเท่านั้น ลูกค้ายังอยู่ที่ OA เดิม เมื่อแผนกปลายทางทำเสร็จ Case กลับไปที่แผนกต้นทางพร้อม PIC เดิม ทุกขั้นมีประวัติให้ตรวจย้อนหลัง">
+      <div class="kicker"><span class="pill">07</span>Escalation ภายใน</div>
+      <h2 class="title">ส่งต่อข้ามแผนกแล้วรู้ว่าใครรับเรื่อง และค้างอยู่ที่ใคร</h2>
+      <div class="body">
+        <div class="feat">
+          <figure class="shot"><img src="{{IMG:escalation}}" alt="หน้าจอ Escalation: ส่งจาก Claims ไป Legal พร้อมงานภายในและประวัติ"></figure>
+          <div class="feat-side">
+            <ol class="steps">
+              <li><span class="step-n">1</span><div><b>ขอส่งต่อพร้อมเหตุผล</b><p>เลือกแผนกปลายทางและผู้รับผิดชอบที่ขอได้</p></div></li>
+              <li><span class="step-n">2</span><div><b>แผนกปลายทางพิจารณาแล้วกดรับ</b><p>หรือปฏิเสธพร้อมเหตุผล ทุกขั้นบันทึกใน timeline</p></div></li>
+              <li><span class="step-n">3</span><div><b>ทำงานผ่านงานภายใน แล้วปิดเรื่อง</b><p>ความเห็นภายในไม่แสดงในแชตลูกค้า</p></div></li>
+            </ol>
+            <div class="win"><b>ทีมของคุณได้</b>ทุกเรื่องที่ส่งต่อมีสถานะและเจ้าของ ตามงานได้โดยไม่ต้องโทรถาม</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Escalation</span></div>
+    </section>
+
+    <!-- 8. Customer 360 -->
+    <section class="sl frame" hidden data-notes="ลูกค้าคนเดียวกันที่ทักหลาย OA ยังเป็นคนละ record การเชื่อมต้องมี consent ทั้งสองฝั่งและผู้จัดการอนุมัติ แต่ละฝั่งเห็นเฉพาะหมวดข้อมูลที่ consent ครอบคลุม ข้อความ consent ตั้งร่วมกับ DPO ของบริษัทลูกค้า">
+      <div class="kicker"><span class="pill">08</span>Customer 360</div>
+      <h2 class="title">รู้จักลูกค้าครบทุกช่องทาง โดยยังอยู่ในขอบเขตของ consent</h2>
+      <div class="body">
+        <div class="feat">
+          <figure class="shot"><img src="{{IMG:c360}}" alt="หน้าจอ Customer 360: โปรไฟล์ที่เชื่อมจาก Service OA แสดงเฉพาะหมวดข้อมูลที่ consent ครอบคลุม"></figure>
+          <div class="feat-side">
+            <ol class="steps">
+              <li><span class="step-n">1</span><div><b>ไม่รวมโปรไฟล์อัตโนมัติ</b><p>ลูกค้าแต่ละ OA เป็นคนละ record แม้ชื่อเหมือนกัน</p></div></li>
+              <li><span class="step-n">2</span><div><b>เชื่อมเมื่อมี consent และได้รับอนุมัติ</b><p>ทั้งสองฝั่งต้องยินยอม และผู้จัดการอนุมัติ</p></div></li>
+              <li><span class="step-n">3</span><div><b>เห็นเฉพาะหมวดที่ consent ครอบคลุม</b><p>ลูกค้าถอนความยินยอม การเชื่อมถูกระงับทันที</p></div></li>
+            </ol>
+            <div class="win"><b>ทีมของคุณได้</b>ดูแลลูกค้าต่อเนื่องข้ามแผนก โดยมีหลักฐาน consent ให้ตรวจสอบ</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Customer 360</span></div>
+    </section>
+
+    <!-- 9. Dashboard -->
+    <section class="sl frame" hidden data-notes="ทุกการ์ดบน Dashboard กดลงไปดูรายการเคสได้ SLA ตั้งค่าตามเงื่อนไขของบริษัทลูกค้า เช่น ปฏิทินวันทำการ และสถานะที่หยุดนับ">
+      <div class="kicker"><span class="pill">09</span>Dashboard &amp; SLA</div>
+      <h2 class="title">ผู้บริหารเห็น SLA โดยไม่ต้องรอรายงานสิ้นเดือน</h2>
+      <div class="body">
+        <div class="feat">
+          <figure class="shot"><img src="{{IMG:dashboard}}" alt="หน้าจอ Dashboard: KPI แนวโน้ม Case สถานะ และปริมาณงานตาม LINE OA"></figure>
+          <div class="feat-side">
+            <ol class="steps">
+              <li><span class="step-n">1</span><div><b>KPI กดดูรายการต่อได้</b><p>แชตที่ยังไม่อ่าน Case ที่เปิดอยู่ และ SLA ที่ต้องเร่ง</p></div></li>
+              <li><span class="step-n">2</span><div><b>SLA 4 สถานะ</b><p>ON TRACK · AT RISK · BREACHED · PAUSED</p></div></li>
+              <li><span class="step-n">3</span><div><b>ภาระงานและอายุ Escalation</b><p>เห็นว่าใครถืองานเท่าไร และเรื่องไหนค้างนานที่สุด</p></div></li>
+            </ol>
+            <div class="win"><b>ทีมของคุณได้</b>เห็นเคสเสี่ยงเกิน SLA ก่อนลูกค้าร้องเรียน</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Dashboard</span></div>
+    </section>
+
+    <!-- 10. Who gets what -->
+    <section class="sl frame" hidden data-notes="ถามผู้ฟังว่าใครในห้องเป็นผู้ใช้กลุ่มไหน แล้วเน้นการ์ดของคนนั้น การซื้อระบบแบบนี้มักต้องผ่านหลายฝ่าย การ์ดนี้ช่วยให้แต่ละฝ่ายเห็นประโยชน์ของตัวเอง">
+      <div class="kicker"><span class="pill">10</span>ประโยชน์ตามบทบาท</div>
+      <h2 class="title">ทุกฝ่ายในบริษัทได้ประโยชน์จากระบบเดียวกัน</h2>
+      <div class="body">
+        <div class="roles">
+          <div class="card role"><i>ผู้บริหาร</i><h3>เห็นภาพรวมทุก OA</h3><ul class="bullets"><li>SLA และเคสเสี่ยงแบบทันที</li><li>ภาระงานของแต่ละแผนกและแต่ละคน</li></ul></div>
+          <div class="card role"><i>หัวหน้าทีม</i><h3>มอบงานได้ถูกคน</h3><ul class="bullets"><li>คำแนะนำ PIC ตามหัวข้อ</li><li>เห็นงานส่งต่อที่ค้างอยู่</li></ul></div>
+          <div class="card role"><i>เจ้าหน้าที่</i><h3>ทำงานจากหน้าจอเดียว</h3><ul class="bullets"><li>แชตและข้อมูลลูกค้าอยู่ด้วยกัน</li><li>ไม่ต้องถามลูกค้าซ้ำเมื่อรับเรื่องต่อ</li></ul></div>
+          <div class="card role"><i>Compliance · DPO</i><h3>ตรวจสอบได้ทุกขั้น</h3><ul class="bullets"><li>สิทธิ์ตามบทบาทและ audit log</li><li>consent แยกตาม OA มีหลักฐาน</li></ul></div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ประโยชน์ตามบทบาท</span></div>
+    </section>
+
+    <!-- 11. Governance -->
+    <section class="sl frame" hidden data-notes="ฝ่าย Compliance ของลูกค้ามักถามเรื่องนี้ก่อนตัดสินใจ ตอบได้ว่าระบบออกแบบสิทธิ์ ขอบเขต และ consent ไว้ตั้งแต่แรก ข้อความ consent และระยะเวลาเก็บข้อมูลกำหนดร่วมกับ DPO ของลูกค้า">
+      <div class="kicker"><span class="pill">11</span>ความปลอดภัยและข้อมูลส่วนบุคคล</div>
+      <h2 class="title">ออกแบบให้ฝ่าย Compliance และ DPO ตรวจสอบได้</h2>
+      <div class="body">
+        <div class="trust">
+          <div class="card">
+            <h3>ขอบเขตตามบทบาท</h3>
+            <table class="table">
+              <thead><tr><th>บทบาท</th><th>เห็นได้</th></tr></thead>
+              <tbody>
+                <tr><td>ผู้ดูแลระบบ · Auditor</td><td>ทั้งองค์กร (Auditor อ่านอย่างเดียว)</td></tr>
+                <tr><td>ผู้จัดการ · หัวหน้าทีม</td><td>แผนกตัวเอง และเคสที่ส่งเข้า/ออก</td></tr>
+                <tr><td>PIC</td><td>เฉพาะงานที่ได้รับมอบหมาย</td></tr>
+                <tr><td>แผนกที่ดู log</td><td>Case และ timeline อ่านอย่างเดียว</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>ข้อมูลส่วนบุคคล</h3>
+            <ul class="bullets">
+              <li>เบอร์โทรและข้อมูล PII ปิดบังไว้ เปิดดูแล้วบันทึกลง audit</li>
+              <li>consent แยกตาม OA ระบุวัตถุประสงค์และหมวดข้อมูล</li>
+              <li>ไม่รวมโปรไฟล์ลูกค้าข้าม OA อัตโนมัติ</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>การควบคุมการใช้งาน</h3>
+            <ul class="bullets">
+              <li>ทุกการเปลี่ยนแปลงสำคัญมีประวัติใน timeline</li>
+              <li>ความเห็นภายในไม่แสดงในแชตลูกค้า</li>
+              <li>Segment ใช้ดูและกรองเท่านั้น ไม่ส่งข้อความออก</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rule"><b>ทำร่วมกับ DPO ของคุณ</b>ข้อความ consent · วัตถุประสงค์การใช้ข้อมูล · ระยะเวลาเก็บข้อมูล</div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>Governance</span></div>
+    </section>
+
+    <!-- 12. Rollout -->
+    <section class="sl frame" hidden data-notes="บอกผู้ฟังตรงๆ ว่าสิ่งที่เห็นวันนี้เป็นระบบเดโม การเชื่อมกับ LINE OA จริงและระบบหลักของบริษัททำร่วมกันตอนติดตั้ง ระยะเวลาประเมินหลังดูระบบของลูกค้า">
+      <div class="kicker"><span class="pill">12</span>การเริ่มใช้งาน</div>
+      <h2 class="title">เริ่มใช้ได้ทีละ OA ไม่ต้องเปลี่ยนทั้งองค์กรในวันเดียว</h2>
+      <div class="body">
+        <div class="rollout">
+          <div class="card">
+            <h3>ขั้นตอนติดตั้ง</h3>
+            <ol class="steps compact">
+              <li><span class="step-n">1</span><div><b>Workshop ตั้งค่าองค์กร</b><p>แผนก หัวข้อ PIC และเงื่อนไข SLA</p></div></li>
+              <li><span class="step-n">2</span><div><b>เชื่อม LINE OA บัญชีแรก</b><p>ทดลองกับทีมจริงของคุณ</p></div></li>
+              <li><span class="step-n">3</span><div><b>ขยายไป OA และแผนกอื่น</b><p>เปิด Customer 360 หลังตกลงเรื่อง consent</p></div></li>
+              <li><span class="step-n">4</span><div><b>เชื่อมระบบหลัก</b><p>บัญชีพนักงาน (SSO) และระบบกรมธรรม์ / เคลม</p></div></li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>สถานะของระบบวันนี้</h3>
+            <table class="table ready">
+              <thead><tr><th>ใช้งานได้ในเดโม</th><th>ทำร่วมกันตอนติดตั้ง</th></tr></thead>
+              <tbody>
+                <tr><td>Unified Inbox · Case · PIC</td><td>เชื่อม LINE Messaging API กับ OA จริง</td></tr>
+                <tr><td>ส่งเรื่องตามหัวข้อ · Escalation</td><td>บัญชีพนักงานและ SSO</td></tr>
+                <tr><td>Customer 360 · consent · Segment</td><td>ฐานข้อมูลกลางและเซิร์ฟเวอร์</td></tr>
+                <tr><td>Dashboard · SLA · Reports</td><td>เชื่อมระบบกรมธรรม์ / เคลม</td></tr>
+                <tr><td>สิทธิ์ตามบทบาท · audit</td><td>ปฏิทินวันทำการของ SLA</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="terms"><b>ระยะเวลาติดตั้ง</b>ประเมินหลังดูระบบและจำนวน OA ของคุณ</div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>การเริ่มใช้งาน</span></div>
+    </section>
+
+    <!-- 13. CTA -->
+    <section class="sl cta" hidden data-notes="ปิดด้วยข้อเสนอที่เสี่ยงต่ำ: ทดลองกับ OA จริง 1 บัญชี ทีมเดียว แล้วให้ตัวเลขของลูกค้าเองเป็นตัวตัดสิน">
+      <div class="ai-slot">{{AI:cta}}</div>
+      <div class="cta-shade"></div>
+      <div class="cta-body">
+        <img class="cta-logo" src="{{IMG:logo}}" alt="Jacky">
+        <h2 class="cta-title">เริ่มจากทดลองกับ LINE&nbsp;OA จริงของคุณ 1&nbsp;บัญชี</h2>
+        <p class="cta-sub">ใช้ทีมเดียว ใช้เคสจริง แล้วให้ตัวเลขของคุณเป็นตัวตัดสิน</p>
+        <ol class="cta-steps">
+          <li><b>นัดสาธิตกับทีมของคุณ</b><span>ดูระบบกับโจทย์จริงของบริษัท</span></li>
+          <li><b>Workshop ตั้งค่าหัวข้อและ PIC</b><span>ออกแบบตามโครงสร้างแผนกของคุณ</span></li>
+          <li><b>ทดลองกับ OA 1 บัญชี</b><span>วัดเวลาจนมีคนรับเรื่อง และเคสที่ทัน SLA</span></li>
+        </ol>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ขอบคุณ</span></div>
+    </section>
+  </div>
+
+  {{APP_LINK}}
+  <div class="deck-notes" id="notes" hidden><b>โน้ตผู้นำเสนอ</b><p id="notesText"></p></div>
+  <nav class="deck-nav" id="nav" aria-label="เลื่อนสไลด์">
+    <button type="button" id="prev" aria-label="สไลด์ก่อนหน้า">‹ ก่อนหน้า</button>
+    <span class="deck-count" id="count" aria-live="polite"></span>
+    <button type="button" id="next" aria-label="สไลด์ถัดไป">ถัดไป ›</button>
+    <button type="button" id="notesBtn" aria-pressed="false">โน้ต</button>
+  </nav>
+</div>
+
+<script>
+(() => {
+  const W = 1600, H = 900;
+  const canvas = document.getElementById('canvas');
+  const slides = [...canvas.querySelectorAll('.sl')];
+  const progress = document.getElementById('progress');
+  const count = document.getElementById('count');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const nav = document.getElementById('nav');
+  const notes = document.getElementById('notes');
+  const notesText = document.getElementById('notesText');
+  const notesBtn = document.getElementById('notesBtn');
+  let i = 0;
+
+  function fit() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    canvas.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((el, k) => { el.hidden = k !== i; });
+    progress.style.width = ((i + 1) / slides.length) * 100 + '%';
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    notesText.textContent = slides[i].dataset.notes || '';
+    const h = '#s' + (i + 1);
+    if (location.hash !== h) history.replaceState(null, '', h);
+  }
+  function fromHash() {
+    const m = /^#s(\d+)$/.exec(location.hash);
+    show(m ? Number(m[1]) - 1 : 0);
+  }
+  prev.addEventListener('click', () => show(i - 1));
+  next.addEventListener('click', () => show(i + 1));
+  notesBtn.addEventListener('click', () => {
+    notes.hidden = !notes.hidden;
+    notesBtn.setAttribute('aria-pressed', String(!notes.hidden));
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input, textarea, select')) return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'n' || e.key === 'N') notesBtn.click();
+  });
+  // swipe on touch screens
+  let x0 = null;
+  canvas.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  canvas.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+  // nav fades out after the pointer rests
+  let idle;
+  function wake() {
+    nav.classList.remove('hide');
+    clearTimeout(idle);
+    idle = setTimeout(() => { if (!nav.matches(':hover, :focus-within')) nav.classList.add('hide'); }, 2500);
+  }
+  ['mousemove', 'keydown', 'touchstart'].forEach((t) => document.addEventListener(t, wake, { passive: true }));
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', fromHash);
+  fit();
+  fromHash();
+  wake();
+})();
+</script>
+
+<script>
+// Cost calculator (slide 3). Defaults are illustrative; the audience enters its own numbers.
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const ids = ['chats', 'share', 'mins', 'wage', 'cut'];
+  const nf = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 });
+  function update() {
+    const v = Object.fromEntries(ids.map((k) => [k, Number($('c-' + k).value)]));
+    $('v-chats').textContent = nf.format(v.chats) + ' แชต';
+    $('v-share').textContent = v.share + '%';
+    $('v-mins').textContent = v.mins + ' นาที';
+    $('v-wage').textContent = nf.format(v.wage) + ' บาท';
+    $('v-cut').textContent = v.cut + '%';
+    const hours = (v.chats * (v.share / 100) * v.mins) / 60;
+    const cost = hours * v.wage;
+    const saved = hours * (v.cut / 100);
+    $('o-hours').textContent = nf.format(hours) + ' ชม.';
+    $('o-cost').textContent = nf.format(cost) + ' ฿';
+    $('o-saved').textContent = nf.format(saved) + ' ชม.';
+    $('o-year').textContent = nf.format(saved * v.wage * 12) + ' ฿';
+  }
+  ids.forEach((k) => $('c-' + k).addEventListener('input', update));
+  update();
+})();
+</script>

@@ -446,3 +446,33 @@ details summary { cursor: pointer; margin-top: 4px; }
 .banner { flex-wrap: nowrap; align-items: flex-start; }
 .banner > svg, .banner-icon { flex: none; margin-top: 3px; }
 .banner-text { flex: 1; min-width: 0; }
+
+/* ---------- brand + landing (InsureFlow style: green #0d7a59, warm orange, Mitr headings) ---------- */
+.brand-logo { width: 38px; height: 38px; flex: none; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25)); }
+.landing {
+  --l-ink: #12302a; --l-accent: #0d7a59; --l-warm: #d4621a; --l-ink-2: #485953;
+  position: relative; min-height: 100vh; overflow: hidden; color: var(--l-ink);
+  font-family: 'IBM Plex Sans Thai', 'Noto Sans Thai', system-ui, sans-serif;
+  background: radial-gradient(900px 600px at 85% 30%, #cdeedd 0%, rgba(205, 238, 221, 0) 70%), radial-gradient(700px 500px at 100% 100%, #d7f0f2 0%, rgba(215, 240, 242, 0) 70%), linear-gradient(120deg, #fffaf3 0%, #f3f8f2 55%, #dff2e9 100%);
+  display: flex; flex-direction: column; justify-content: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 48px 72px;
+}
+.landing-hero { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; opacity: 0; transition: opacity 0.6s; }
+.landing-hero.on { opacity: 1; }
+.landing-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 250, 243, 0.96) 0%, rgba(255, 250, 243, 0.82) 42%, rgba(255, 250, 243, 0) 70%); }
+.landing-body { position: relative; z-index: 1; max-width: 760px; margin-left: clamp(0px, 5vw, 96px); display: flex; flex-direction: column; gap: 14px; }
+.landing-logo { width: 120px; height: 120px; filter: drop-shadow(0 6px 14px rgba(13, 122, 89, 0.22)); }
+.landing-kicker { margin: 4px 0 0; font-size: 14px; font-weight: 600; letter-spacing: 0.12em; color: var(--l-accent); }
+.landing-title { margin: 0; font-family: 'Mitr', 'IBM Plex Sans Thai', sans-serif; font-size: clamp(48px, 8vw, 96px); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+.landing-promise { margin: 0; font-family: 'Mitr', 'IBM Plex Sans Thai', sans-serif; font-size: clamp(22px, 3vw, 32px); font-weight: 500; color: var(--l-warm); text-wrap: balance; }
+.landing-sub { margin: 0; font-size: clamp(17px, 2vw, 21px); line-height: 1.6; color: var(--l-ink-2); }
+.landing-sub span { display: block; }
+.landing-actions { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; max-width: 440px; }
+.landing-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 64px; border-radius: 14px; font-size: 19px; font-weight: 600; transition: transform 0.15s, box-shadow 0.15s; }
+.landing-btn.primary { background: var(--l-accent); color: #fff; box-shadow: 0 10px 24px rgba(13, 122, 89, 0.28); }
+.landing-btn.ghost { background: rgba(255, 255, 255, 0.92); color: var(--l-accent); border: 1px solid #cfe0d8; }
+.landing-btn:hover { transform: translateY(-2px); }
+.landing-btn:focus-visible { outline: 3px solid #ff8a3d; outline-offset: 3px; }
+.landing-foot { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); right: 16px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); margin: 0; z-index: 1; font-size: 13px; color: #6f7f79; padding-left: clamp(0px, 5vw, 96px); }
+@media (prefers-reduced-motion: reduce) { .landing-hero, .landing-btn { transition: none; } }
+@media (max-width: 700px) { .landing-shade { background: rgba(255, 250, 243, 0.85); } }

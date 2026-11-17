@@ -10,6 +10,7 @@ import { ReportsPage } from '../features/reports/ReportsPage';
 import { ChannelsPage } from '../features/channels/ChannelsPage';
 import { AccessControlPage } from '../features/access-control/AccessControlPage';
 import { NotFoundPage } from './NotFoundPage';
+import { LandingPage } from '../features/landing/LandingPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
 import { CustomerProfilePage } from '../features/customers/CustomerProfilePage';
 import { SegmentsPage } from '../features/segments/SegmentsPage';
@@ -20,8 +21,9 @@ export function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route index element={<LandingPage />} />
         <Route element={<AppShell />}>
-          <Route index element={<DashboardPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="inbox" element={<InboxPage />} />
           <Route path="inbox/:conversationId" element={<InboxPage />} />
           <Route path="customers" element={<CustomersPage />} />
