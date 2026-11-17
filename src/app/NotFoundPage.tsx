@@ -6,7 +6,7 @@ export function NotFoundPage() {
     <EmptyState
       title="ไม่พบหน้านี้"
       hint="ลิงก์อาจไม่ถูกต้อง หรือข้อมูลถูก Reset ไปแล้ว"
-      action={<Link className="btn btn-primary btn-md" to="/">กลับไป Dashboard</Link>}
+      action={<Link className="btn btn-primary btn-md" to="/dashboard">กลับไป Dashboard</Link>}
     />
   );
 }

@@ -30,7 +30,7 @@ import { Avatar } from '../common/ui';
 import { ROLES } from '../../types/domain';
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/inbox', label: 'Inbox', icon: Inbox },
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/segments', label: 'Segments', icon: Filter },
@@ -47,7 +47,7 @@ const ADMIN_NAV = [
 ];
 
 const TITLES: [RegExp, string][] = [
-  [/^\/$/, 'Dashboard'],
+  [/^\/dashboard/, 'Dashboard'],
   [/^\/inbox/, 'Unified Inbox'],
   [/^\/customers\/.+/, 'Customer Profile'],
   [/^\/customers/, 'Customers'],
@@ -75,7 +75,7 @@ export function AppShell() {
     <div className="shell">
       <aside className="sidebar" aria-label="เมนูหลัก">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">JC</span>
+          <img className="brand-logo" src="/brand/jacky-logo-256.png" alt="" width="38" height="38" />
           <span className="brand-text">
             Jacky Central
             <small>Communication & Case Mgmt</small>
@@ -83,7 +83,7 @@ export function AppShell() {
         </div>
         <nav className="nav">
           {NAV.filter((n) => !n.perm || can(me, n.perm)).map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} className="nav-item">
+            <NavLink key={n.to} to={n.to} className="nav-item">
               <n.icon size={18} aria-hidden="true" />
               <span>{n.label}</span>
             </NavLink>
@@ -142,7 +142,7 @@ export function AppShell() {
             resetDemo();
             setConfirmReset(false);
             toast.success('กลับเป็นข้อมูลตั้งต้นแล้ว');
-            nav('/');
+            nav('/dashboard');
           }}
         />
       )}
