@@ -1,5 +1,5 @@
 <title>Jacky Central · Presentation</title>
-<meta name="description" content="Jacky Central: ระบบกลางดูแลแชต LINE OA ทุกช่องทางและส่งต่องานข้ามแผนก (เดโม)">
+<meta name="description" content="Jacky Central: ระบบดูแลแชต LINE OA หลายบัญชีและส่งต่องานข้ามแผนก สำหรับบริษัทประกันวินาศภัย">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
@@ -132,6 +132,57 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
 .terms { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 20px; border-radius: 14px; background: #ffeadb; color: #6b3200; font-size: 17px; }
 .terms b { color: var(--warm-ink); }
 @media (prefers-reduced-motion: reduce) { .deck-progress, .deck-nav { transition: none; } }
+
+/* ---------- sales deck additions ---------- */
+.win { padding: 14px 18px; border-radius: 12px; background: var(--soft); border: 1px solid #b9e2cf; color: var(--ink); font-size: 18px; line-height: 1.5; }
+.win b { display: block; font-size: 13px; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 2px; }
+/* calculator */
+.calc { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; }
+.calc-in { display: flex; flex-direction: column; gap: 16px; }
+.calc-in h3 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.slider { display: flex; flex-direction: column; gap: 4px; }
+.slider label { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 19px; color: var(--ink-2); }
+.slider label b { font-size: 24px; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slider input[type=range] { width: 100%; height: 26px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.slider.assume { padding: 10px 14px; border-radius: 12px; background: #ffeadb; }
+.slider.assume input[type=range] { accent-color: #c8561a; }
+.calc-out { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr auto; gap: 14px; }
+.out { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 18px 22px; border-radius: 16px; background: #fff; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.out span { font-size: 17px; color: var(--ink-2); }
+.out b { font-size: 46px; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.out.good { background: var(--accent); }
+.out.good span { color: rgba(255, 255, 255, 0.85); }
+.out.good b { color: #fff; }
+.formula { grid-column: 1 / -1; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--grey); }
+/* roles */
+.roles { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.role { display: flex; flex-direction: column; gap: 6px; }
+.role i { font-style: normal; align-self: flex-start; padding: 3px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); font-weight: 700; font-size: 15px; }
+.role h3 { margin: 8px 0 12px; font-size: 27px; line-height: 1.3; }
+.role .bullets { font-size: 21px; }
+/* rollout */
+.rollout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; }
+.steps.compact { gap: 10px; }
+.steps.compact li { box-shadow: none; border: 1px solid rgba(18, 48, 42, 0.1); padding: 10px 16px; }
+.steps.compact b { font-size: 20px; }
+.steps.compact p { font-size: 16px; }
+.table.ready td:first-child { color: var(--accent); font-weight: 600; }
+.table.ready td { font-size: 18px; padding: 10px 10px 10px 0; }
+/* closing */
+.cta { background: radial-gradient(900px 620px at 85% 40%, #cdeedd 0%, rgba(205, 238, 221, 0) 70%), linear-gradient(120deg, var(--cream) 0%, #f3f8f2 55%, #dff2e9 100%); }
+.cta .ai-slot { position: absolute; inset: 0; border-radius: 0; }
+.cta .ai-ph { position: absolute; right: 70px; top: 120px; width: 520px; height: 400px; }
+.cta-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 250, 243, 0.97) 0%, rgba(255, 250, 243, 0.88) 48%, rgba(255, 250, 243, 0) 78%); }
+.cta-body { position: absolute; left: 96px; top: 96px; width: 860px; display: flex; flex-direction: column; gap: 18px; }
+.cta-logo { width: 96px; height: 96px; filter: drop-shadow(0 6px 14px rgba(13, 122, 89, 0.22)); }
+.cta-title { margin: 0; font-family: var(--display); font-size: 60px; line-height: 1.2; font-weight: 600; color: var(--ink); text-wrap: balance; }
+.cta-sub { margin: 0; font-size: 26px; color: #d4621a; font-family: var(--display); font-weight: 500; }
+.cta-steps { margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; counter-reset: cta; }
+.cta-steps li { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: auto auto; column-gap: 16px; padding: 14px 20px; border-radius: 14px; background: rgba(255, 255, 255, 0.9); border: 1px solid #dce5e0; box-shadow: 0 6px 18px rgba(18, 48, 42, 0.08); }
+.cta-steps li::before { counter-increment: cta; content: counter(cta); grid-row: 1 / 3; align-self: center; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 21px; }
+.cta-steps b { font-size: 23px; color: var(--ink); }
+.cta-steps span { font-size: 18px; color: var(--ink-2); }
+.cta .foot { left: 96px; right: 96px; }
 </style>
 
 <div class="deck" id="deck">
@@ -139,15 +190,15 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
     <div class="deck-progress" id="progress"></div>
 
     <!-- 1. Cover -->
-    <section class="sl cover" data-notes="เปิดด้วยข้อสัญญาเดียว: ทุก LINE OA อยู่ในที่เดียว และงานที่ต้องส่งต่อข้ามแผนกจะไม่หลุดมือ ลูกค้ายังคุยผ่าน OA เดิมเหมือนทุกวันนี้ ทุกอย่างในเดโม่เป็นข้อมูลจำลอง">
+    <section class="sl cover" data-notes="เปิดด้วยสิ่งที่ระบบสัญญา: บริษัทที่มี LINE OA หลายบัญชีจะดูแลทุกแชตได้จากที่เดียว และเรื่องที่ต้องส่งต่อข้ามแผนกจะไม่หลุดมือ ลูกค้าปลายทางยังคุยผ่าน OA เดิมเหมือนทุกวันนี้">
       <div class="ai-slot">{{AI:cover}}</div>
       <div class="cover-shade"></div>
       <div class="cover-body">
         <img class="cover-logo" src="{{IMG:logo}}" alt="Jacky">
         <p class="cover-kicker">CENTRAL COMMUNICATION &amp; CASE MANAGEMENT · สำหรับบริษัทประกันวินาศภัย</p>
         <h1 class="cover-title">Jacky Central</h1>
-        <p class="cover-promise">ทุก LINE OA ในที่เดียว ส่งต่องานไม่หลุดมือ</p>
-        <p class="cover-tag"><span>ลูกค้าคุยผ่าน LINE OA เดิมของแต่ละแผนก</span><span>ทีมงานเห็นทุกแชต ส่งเรื่องให้คนที่ถูก และติดตาม SLA ได้ในที่เดียว</span></p>
+        <p class="cover-promise">ทุก LINE&nbsp;OA ในที่เดียว ส่งต่องานไม่หลุดมือ</p>
+        <p class="cover-tag"><span>ลูกค้าของคุณคุยผ่าน LINE OA เดิม</span><span>ทีมของคุณเห็นทุกแชต ส่งเรื่องถึงคนที่ถูก และติดตาม SLA ได้ในที่เดียว</span></p>
       </div>
       <div class="cover-cards">
         <div class="cover-card"><i>INBOX</i><b>รวมแชตทุก OA</b><span>ตอบผ่านช่องทางเดิมเสมอ</span></div>
@@ -155,41 +206,13 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
         <div class="cover-card"><i>ESCALATION</i><b>ส่งต่อข้ามแผนก</b><span>มีสถานะ มีคนรับ มีประวัติ</span></div>
         <div class="cover-card"><i>CUSTOMER 360</i><b>เห็นลูกค้าครบ</b><span>ภายใต้ขอบเขต consent</span></div>
       </div>
-      <div class="foot"><span>เดโม · ข้อมูลลูกค้า แชต และเคสเป็นข้อมูลจำลอง ไม่ได้เชื่อมต่อ LINE จริง</span><span>Jacky Central</span></div>
+      <div class="foot"><span>ภาพหน้าจอในเอกสารนี้มาจากระบบเดโม ข้อมูลลูกค้าทั้งหมดเป็นข้อมูลจำลอง</span><span>Jacky Central</span></div>
     </section>
 
-    <!-- 2. Summary + ask -->
-    <section class="sl frame" hidden data-notes="หน้านี้คือสิ่งที่ต้องการจากที่ประชุม: อนุมัติ Pilot 1 OA, ตั้งเจ้าของงานของแต่ละแผนก และให้ IT ประเมินการเชื่อมระบบจริง ส่วนตัวชี้วัดยังไม่ใส่เป้าตัวเลข เพราะต้องเก็บ baseline จากข้อมูลจริงก่อน">
-      <div class="kicker"><span class="pill">02</span>สรุปสำหรับผู้บริหาร</div>
-      <h2 class="title">ขออนุมัติทำ Pilot ระบบกลางดูแลแชต LINE OA โดยเริ่มที่ Claims OA</h2>
-      <div class="body">
-        <div class="sum">
-          <div class="card">
-            <h3>ข้อสรุป</h3>
-            <ul class="bullets">
-              <li>แชตลูกค้าแยกอยู่ตาม LINE OA ของแต่ละแผนก เรื่องที่ต้องส่งต่อข้ามแผนกจึงไม่มีเจ้าของชัดและไม่มีประวัติ</li>
-              <li>Jacky Central รวมทุก OA ไว้ที่เดียว ลูกค้ายังคุยผ่าน OA เดิม งานภายในส่งต่อด้วย Case, Escalation และงานภายใน</li>
-              <li>เดโม่เดิน flow ได้ครบตั้งแต่รับแชตจนปิดเคส ใช้ข้อมูลจำลองและยังไม่เชื่อม LINE จริง</li>
-            </ul>
-          </div>
-          <div class="card">
-            <h3>สิ่งที่ขออนุมัติ</h3>
-            <ol class="ask">
-              <li><span><b>Pilot กับ 1 OA (เสนอ Claims OA)</b>งานเคลมต้องประสานหลายแผนก เช่น อู่ Legal และ Underwriting</span></li>
-              <li><span><b>ตั้งเจ้าของงานของแต่ละแผนกที่ร่วม Pilot</b>รวมถึงให้ Legal / DPO ตรวจข้อความ consent</span></li>
-              <li><span><b>ให้ IT ประเมินการเชื่อมระบบจริง</b>LINE Messaging API, SSO และระบบกรมธรรม์ / เคลม</span></li>
-            </ol>
-          </div>
-        </div>
-        <div class="rule"><b>วัดผล Pilot</b>เวลาตั้งแต่ลูกค้าทักจนมี PIC · สัดส่วน Case ที่ปิดทัน SLA · จำนวน Escalation ที่ค้างเกินกำหนด (เป้าตัวเลขกำหนดหลังเก็บ baseline)</div>
-      </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>สรุปและข้อเสนอ</span></div>
-    </section>
-
-    <!-- 3. Problem -->
-    <section class="sl frame" hidden data-notes="ปัญหาทั้ง 4 ข้อเป็นภาพที่เห็นจากการทำงานจริง ยังไม่มีตัวเลขยืนยัน ถ้าจะใช้ตัวเลขประกอบ ต้องดึงจากข้อมูลแชตและเคสจริงก่อน">
-      <div class="kicker"><span class="pill">03</span>ปัญหาวันนี้</div>
-      <h2 class="title">แชตกระจายหลาย OA ทำให้เรื่องของลูกค้าไม่มีเจ้าของชัดเจน</h2>
+    <!-- 2. Problem -->
+    <section class="sl frame" hidden data-notes="ถามผู้ฟังก่อนว่ามี LINE OA กี่บัญชี และใครดูแลแต่ละบัญชี ปัญหา 4 ข้อนี้มักเกิดเมื่อแต่ละแผนกเปิด OA ของตัวเอง ให้ผู้ฟังเลือกข้อที่ตรงกับตัวเองที่สุด แล้วโยงไปสไลด์ถัดไป">
+      <div class="kicker"><span class="pill">02</span>ปัญหาที่พบบ่อย</div>
+      <h2 class="title">ยิ่งมี LINE&nbsp;OA หลายบัญชี เรื่องของลูกค้ายิ่งตกหล่นระหว่างแผนก</h2>
       <div class="body">
         <div class="prob-wrap">
           <div class="prob">
@@ -202,13 +225,39 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
         </div>
         <div class="rule"><b>ต้นเหตุ</b>ไม่มีที่กลางที่ผูก แชต → เรื่อง → เจ้าของ → สถานะ ไว้ด้วยกัน</div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>ปัญหา</span></div>
+      <div class="foot"><span>Jacky Central</span><span>ปัญหา</span></div>
     </section>
 
-    <!-- 4. Solution map -->
-    <section class="sl frame" hidden data-notes="หลักที่สำคัญที่สุดของระบบคือ สิ่งที่ย้ายระหว่างแผนกคือความรับผิดชอบภายใน ช่องทางที่ลูกค้าใช้คุยไม่เปลี่ยน ลูกค้าไม่ต้องเพิ่มเพื่อน OA ใหม่หรือเล่าเรื่องซ้ำ">
-      <div class="kicker"><span class="pill">04</span>แนวทางแก้</div>
-      <h2 class="title">ทุกปัญหามีจุดแก้ในระบบเดียว</h2>
+    <!-- 3. Calculator -->
+    <section class="sl frame" hidden data-notes="ให้ผู้ฟังบอกตัวเลขของบริษัทเอง แล้วเลื่อนแถบตามนั้น ค่าตั้งต้นเป็นตัวเลขสมมติ ไม่ใช่ข้อมูลอุตสาหกรรม ช่องสุดท้ายคือสมมติฐานว่าระบบช่วยลดเวลาได้เท่าไร ให้ผู้ฟังเป็นคนกำหนดเอง">
+      <div class="kicker"><span class="pill">03</span>ต้นทุนของปัญหา</div>
+      <h2 class="title">ปัญหานี้มีต้นทุนที่วัดได้ ลองคำนวณด้วยตัวเลขของคุณ</h2>
+      <div class="body">
+        <div class="calc">
+          <div class="card calc-in">
+            <h3>ตัวเลขของบริษัทคุณ <span class="badge">ค่าตั้งต้นเป็นตัวเลขสมมติ</span></h3>
+            <div class="slider"><label for="c-chats"><span>แชตทั้งหมดต่อเดือน (ทุก OA)</span><b id="v-chats"></b></label><input id="c-chats" type="range" min="500" max="50000" step="500" value="6000"></div>
+            <div class="slider"><label for="c-share"><span>สัดส่วนแชตที่ต้องส่งต่อข้ามแผนก</span><b id="v-share"></b></label><input id="c-share" type="range" min="1" max="60" step="1" value="20"></div>
+            <div class="slider"><label for="c-mins"><span>เวลาที่เสียต่อการส่งต่อ 1 ครั้ง (ตามหาเจ้าของ เล่าเรื่องซ้ำ)</span><b id="v-mins"></b></label><input id="c-mins" type="range" min="1" max="60" step="1" value="15"></div>
+            <div class="slider"><label for="c-wage"><span>ต้นทุนพนักงานต่อชั่วโมง</span><b id="v-wage"></b></label><input id="c-wage" type="range" min="100" max="1000" step="10" value="250"></div>
+            <div class="slider assume"><label for="c-cut"><span>สมมติฐาน: ระบบลดเวลาส่วนนี้ได้</span><b id="v-cut"></b></label><input id="c-cut" type="range" min="0" max="90" step="5" value="50"></div>
+          </div>
+          <div class="calc-out">
+            <div class="out"><span>ชั่วโมงที่ใช้กับการส่งต่อ ต่อเดือน</span><b id="o-hours"></b></div>
+            <div class="out"><span>ต้นทุนต่อเดือน</span><b id="o-cost"></b></div>
+            <div class="out good"><span>ชั่วโมงที่ได้คืน ต่อเดือน</span><b id="o-saved"></b></div>
+            <div class="out good"><span>มูลค่าเวลาที่ได้คืน ต่อปี</span><b id="o-year"></b></div>
+            <p class="formula">ชั่วโมง = แชต × สัดส่วนที่ส่งต่อ × นาทีต่อครั้ง ÷ 60 · ต้นทุน = ชั่วโมง × ต้นทุนต่อชั่วโมง · ได้คืน = ชั่วโมง × สมมติฐานที่ลดได้ · ผลลัพธ์จริงขึ้นกับกระบวนการของแต่ละบริษัท</p>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ตัวคำนวณ</span></div>
+    </section>
+
+    <!-- 4. Concept -->
+    <section class="sl frame" hidden data-notes="หลักของระบบคือ สิ่งที่ย้ายระหว่างแผนกคือความรับผิดชอบภายใน ช่องทางที่ลูกค้าคุยไม่เปลี่ยน ลูกค้าไม่ต้องเพิ่มเพื่อน OA ใหม่ และไม่ต้องเล่าเรื่องซ้ำ">
+      <div class="kicker"><span class="pill">04</span>แนวคิด</div>
+      <h2 class="title">Jacky Central คือศูนย์กลางที่ลูกค้าไม่ต้องเปลี่ยนช่องทาง</h2>
       <div class="body">
         <div class="map-wrap">
           <ul class="map">
@@ -224,53 +273,53 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>แนวทางแก้</span></div>
+      <div class="foot"><span>Jacky Central</span><span>แนวคิด</span></div>
     </section>
 
     <!-- 5. Inbox -->
-    <section class="sl frame" hidden data-notes="ชี้ให้ดูช่องตอบด้านล่าง ระบบล็อกให้ตอบผ่าน OA เดิมเท่านั้น ไม่มีตัวเลือกช่องทาง และในเดโม่ข้อความไม่ได้ส่งไป LINE จริง">
+    <section class="sl frame" hidden data-notes="ชี้ให้ดูช่องตอบด้านล่าง ระบบล็อกให้ตอบผ่าน OA เดิม ไม่มีตัวเลือกช่องทาง ทีมจึงไม่ตอบผิดบัญชี">
       <div class="kicker"><span class="pill">05</span>Unified Inbox</div>
-      <h2 class="title">รวมแชตทุก OA ในที่เดียว แต่ตอบลูกค้าผ่านช่องทางเดิมเสมอ</h2>
+      <h2 class="title">ทีมเห็นทุกแชตในหน้าจอเดียว ไม่ต้องสลับหลายบัญชี</h2>
       <div class="body">
         <div class="feat">
           <figure class="shot"><img src="{{IMG:inbox}}" alt="หน้าจอ Unified Inbox: รายการแชตจากหลาย OA แชตที่เลือก และข้อมูลลูกค้า"></figure>
           <div class="feat-side">
             <ol class="steps">
-              <li><span class="step-n">1</span><div><b>กรองตาม OA สถานะ และ PIC</b><p>เห็นแชตจาก Claims, Service และ Sales OA ในรายการเดียว</p></div></li>
+              <li><span class="step-n">1</span><div><b>กรองตาม OA สถานะ และ PIC</b><p>แชตจากทุกบัญชีอยู่ในรายการเดียว</p></div></li>
               <li><span class="step-n">2</span><div><b>ข้อมูลลูกค้าอยู่ข้างแชต</b><p>ผู้ดูแลหลัก สถานะ consent และ Case ที่เกี่ยวข้อง</p></div></li>
-              <li><span class="step-n">3</span><div><b>ช่องตอบล็อกไว้ที่ OA เดิม</b><p>ไม่มีตัวเลือกช่องทาง ป้องกันการตอบผิด OA</p></div></li>
+              <li><span class="step-n">3</span><div><b>ช่องตอบล็อกไว้ที่ OA เดิม</b><p>ป้องกันการตอบลูกค้าผิดบัญชี</p></div></li>
             </ol>
-            <div class="limit"><b>ข้อจำกัดของเดโม่</b>ข้อความที่ตอบเก็บไว้ในเบราว์เซอร์เท่านั้น ติดป้าย SIMULATED — NOT SENT TO LINE</div>
+            <div class="win"><b>ทีมของคุณได้</b>ไม่ต้องเปิดหลายแอปหลายเครื่อง ทุกคนเห็นแชตชุดเดียวกัน</div>
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Unified Inbox</span></div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Unified Inbox</span></div>
     </section>
 
     <!-- 6. Routing -->
-    <section class="sl frame" hidden data-notes="ตัวอย่างในภาพ: ลูกค้าทักมาทาง Sales OA เรื่องโปรโมชัน หัวข้อนี้เป็นของ Marketing ผู้ดูแลหลักของลูกค้าอยู่ในรายชื่อ PIC จึงขึ้นเป็นลำดับแรก และระบบจะส่ง Escalation ไป Marketing ให้อัตโนมัติ">
+    <section class="sl frame" hidden data-notes="ตัวอย่างในภาพ: ลูกค้าทักมาทาง Sales OA เรื่องโปรโมชัน หัวข้อนี้เป็นของ Marketing ผู้ดูแลหลักของลูกค้าอยู่ในรายชื่อ PIC จึงขึ้นเป็นลำดับแรก และระบบส่งเรื่องไป Marketing ให้อัตโนมัติ หัวข้อและรายชื่อ PIC ตั้งค่าตามโครงสร้างของบริษัทลูกค้าเอง">
       <div class="kicker"><span class="pill">06</span>ส่งเรื่องตามหัวข้อ</div>
-      <h2 class="title">เลือกหัวข้อแล้วระบบส่งเรื่องให้แผนกและ PIC ที่ถูกคน</h2>
+      <h2 class="title">เรื่องถึงคนที่ถูกตั้งแต่ครั้งแรก</h2>
       <div class="body">
         <div class="feat narrow-shot">
           <figure class="shot"><img src="{{IMG:create}}" alt="หน้าจอสร้าง Case: เลือกหัวข้อ แผนกที่รับเรื่อง และรายชื่อ PIC โดยผู้ดูแลหลักขึ้นลำดับแรก"></figure>
           <div class="feat-side">
             <ol class="steps">
-              <li><span class="step-n">1</span><div><b>Admin ตั้งค่า แผนก → หัวข้อ → PIC</b><p>หัวข้อหนึ่งมีแผนกรับเรื่อง 1 แผนก และแผนกที่ดู log ได้</p></div></li>
-              <li><span class="step-n">2</span><div><b>ผู้ดูแลหลักของลูกค้าขึ้นลำดับแรก</b><p>ถ้าไม่อยู่ในรายชื่อ PIC จะติดตาม Case ในฐานะผู้ติดตาม</p></div></li>
-              <li><span class="step-n">3</span><div><b>หัวข้อของแผนกอื่นส่งต่อให้อัตโนมัติ</b><p>ระบบสร้าง Escalation และแผนกปลายทางต้องกดรับ</p></div></li>
+              <li><span class="step-n">1</span><div><b>ตั้งค่า แผนก → หัวข้อ → PIC ตามองค์กรคุณ</b><p>หัวข้อหนึ่งมีแผนกรับเรื่อง และแผนกที่ดู log ได้</p></div></li>
+              <li><span class="step-n">2</span><div><b>ผู้ดูแลหลักของลูกค้าขึ้นลำดับแรก</b><p>ลูกค้าได้คุยกับคนที่รู้จักเขาอยู่แล้ว</p></div></li>
+              <li><span class="step-n">3</span><div><b>หัวข้อของแผนกอื่นส่งต่อให้อัตโนมัติ</b><p>แผนกปลายทางต้องกดรับ เรื่องจึงไม่ลอยอยู่กลางทาง</p></div></li>
             </ol>
-            <div class="limit"><b>ต้องปรับกับข้อมูลจริง</b>คะแนนแนะนำ PIC (ทักษะ 35% · ภาระงาน 30% · ความพร้อม 20% · ประสบการณ์ 15%) เป็นสูตรตัวอย่างของเดโม่</div>
+            <div class="win"><b>ทีมของคุณได้</b>ลดการถามต่อกันว่า “เรื่องนี้ใครดูแล” และลดเวลาจนลูกค้าได้คนรับผิดชอบ</div>
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Routing</span></div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Routing</span></div>
     </section>
 
     <!-- 7. Escalation -->
-    <section class="sl frame" hidden data-notes="Escalation เป็นการส่งต่อภายในเท่านั้น ลูกค้ายังอยู่ที่ OA เดิม เมื่อแผนกปลายทาง Resolve แล้ว Case กลับไปที่แผนกต้นทางพร้อม PIC เดิม">
+    <section class="sl frame" hidden data-notes="Escalation เป็นการส่งต่อภายในเท่านั้น ลูกค้ายังอยู่ที่ OA เดิม เมื่อแผนกปลายทางทำเสร็จ Case กลับไปที่แผนกต้นทางพร้อม PIC เดิม ทุกขั้นมีประวัติให้ตรวจย้อนหลัง">
       <div class="kicker"><span class="pill">07</span>Escalation ภายใน</div>
-      <h2 class="title">ส่งต่องานข้ามแผนกได้ โดยลูกค้าไม่ต้องย้ายช่องทาง</h2>
+      <h2 class="title">ส่งต่อข้ามแผนกแล้วรู้ว่าใครรับเรื่อง และค้างอยู่ที่ใคร</h2>
       <div class="body">
         <div class="feat">
           <figure class="shot"><img src="{{IMG:escalation}}" alt="หน้าจอ Escalation: ส่งจาก Claims ไป Legal พร้อมงานภายในและประวัติ"></figure>
@@ -278,59 +327,74 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
             <ol class="steps">
               <li><span class="step-n">1</span><div><b>ขอส่งต่อพร้อมเหตุผล</b><p>เลือกแผนกปลายทางและผู้รับผิดชอบที่ขอได้</p></div></li>
               <li><span class="step-n">2</span><div><b>แผนกปลายทางพิจารณาแล้วกดรับ</b><p>หรือปฏิเสธพร้อมเหตุผล ทุกขั้นบันทึกใน timeline</p></div></li>
-              <li><span class="step-n">3</span><div><b>ทำงานผ่านงานภายใน แล้ว Resolve</b><p>ความเห็นภายในไม่แสดงในแชตลูกค้า Case กลับแผนกต้นทาง</p></div></li>
+              <li><span class="step-n">3</span><div><b>ทำงานผ่านงานภายใน แล้วปิดเรื่อง</b><p>ความเห็นภายในไม่แสดงในแชตลูกค้า</p></div></li>
             </ol>
-            <div class="limit"><b>สิทธิ์ในเดโม่</b>รับหรือปฏิเสธได้เฉพาะ Manager / Supervisor ของแผนกปลายทาง สิทธิ์ทั้งหมดเป็นการจำลอง</div>
+            <div class="win"><b>ทีมของคุณได้</b>ทุกเรื่องที่ส่งต่อมีสถานะและเจ้าของ ตามงานได้โดยไม่ต้องโทรถาม</div>
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Escalation</span></div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Escalation</span></div>
     </section>
 
     <!-- 8. Customer 360 -->
-    <section class="sl frame" hidden data-notes="ลูกค้าคนเดียวกันที่ทักหลาย OA ยังเป็นคนละ record การเชื่อมต้องมี consent ทั้งสองฝั่งและ Manager อนุมัติ และแต่ละฝั่งเห็นข้อมูลได้เฉพาะหมวดที่อยู่ใน consent ของ OA นั้น">
+    <section class="sl frame" hidden data-notes="ลูกค้าคนเดียวกันที่ทักหลาย OA ยังเป็นคนละ record การเชื่อมต้องมี consent ทั้งสองฝั่งและผู้จัดการอนุมัติ แต่ละฝั่งเห็นเฉพาะหมวดข้อมูลที่ consent ครอบคลุม ข้อความ consent ตั้งร่วมกับ DPO ของบริษัทลูกค้า">
       <div class="kicker"><span class="pill">08</span>Customer 360</div>
-      <h2 class="title">เห็นภาพลูกค้าครบทุก OA ภายใต้ขอบเขตของ consent</h2>
+      <h2 class="title">รู้จักลูกค้าครบทุกช่องทาง โดยยังอยู่ในขอบเขตของ consent</h2>
       <div class="body">
         <div class="feat">
           <figure class="shot"><img src="{{IMG:c360}}" alt="หน้าจอ Customer 360: โปรไฟล์ที่เชื่อมจาก Service OA แสดงเฉพาะหมวดข้อมูลที่ consent ครอบคลุม"></figure>
           <div class="feat-side">
             <ol class="steps">
               <li><span class="step-n">1</span><div><b>ไม่รวมโปรไฟล์อัตโนมัติ</b><p>ลูกค้าแต่ละ OA เป็นคนละ record แม้ชื่อเหมือนกัน</p></div></li>
-              <li><span class="step-n">2</span><div><b>เชื่อมได้เมื่อมี consent และได้รับอนุมัติ</b><p>ทั้งสองฝั่งต้องยินยอม และ Manager อนุมัติ</p></div></li>
+              <li><span class="step-n">2</span><div><b>เชื่อมเมื่อมี consent และได้รับอนุมัติ</b><p>ทั้งสองฝั่งต้องยินยอม และผู้จัดการอนุมัติ</p></div></li>
               <li><span class="step-n">3</span><div><b>เห็นเฉพาะหมวดที่ consent ครอบคลุม</b><p>ลูกค้าถอนความยินยอม การเชื่อมถูกระงับทันที</p></div></li>
             </ol>
-            <div class="limit"><b>ต้องให้ Legal / DPO กำหนด</b>ข้อความ consent ในเดโม่เป็นตัวอย่าง ไม่ใช่ข้อความทางกฎหมาย</div>
+            <div class="win"><b>ทีมของคุณได้</b>ดูแลลูกค้าต่อเนื่องข้ามแผนก โดยมีหลักฐาน consent ให้ตรวจสอบ</div>
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Customer 360</span></div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Customer 360</span></div>
     </section>
 
     <!-- 9. Dashboard -->
-    <section class="sl frame" hidden data-notes="ทุกการ์ดบน Dashboard กดลงไปดูรายการเคสได้ SLA ในเดโม่คิดตามเวลาปฏิทิน ระบบจริงต้องใช้ปฏิทินวันทำการและเงื่อนไขหยุดนับที่ตกลงกัน">
+    <section class="sl frame" hidden data-notes="ทุกการ์ดบน Dashboard กดลงไปดูรายการเคสได้ SLA ตั้งค่าตามเงื่อนไขของบริษัทลูกค้า เช่น ปฏิทินวันทำการ และสถานะที่หยุดนับ">
       <div class="kicker"><span class="pill">09</span>Dashboard &amp; SLA</div>
-      <h2 class="title">ผู้บริหารเห็น SLA และภาระงานได้ทันที ไม่ต้องรอรายงาน</h2>
+      <h2 class="title">ผู้บริหารเห็น SLA โดยไม่ต้องรอรายงานสิ้นเดือน</h2>
       <div class="body">
         <div class="feat">
           <figure class="shot"><img src="{{IMG:dashboard}}" alt="หน้าจอ Dashboard: KPI แนวโน้ม Case สถานะ และปริมาณงานตาม LINE OA"></figure>
           <div class="feat-side">
             <ol class="steps">
               <li><span class="step-n">1</span><div><b>KPI กดดูรายการต่อได้</b><p>แชตที่ยังไม่อ่าน Case ที่เปิดอยู่ และ SLA ที่ต้องเร่ง</p></div></li>
-              <li><span class="step-n">2</span><div><b>SLA 4 สถานะ</b><p>ON TRACK · AT RISK · BREACHED · PAUSED (เมื่อรอข้อมูลจากลูกค้า)</p></div></li>
-              <li><span class="step-n">3</span><div><b>รายงานภาระงานและอายุ Escalation</b><p>เห็นว่าใครถืองานเท่าไร และเรื่องไหนค้างนานที่สุด</p></div></li>
+              <li><span class="step-n">2</span><div><b>SLA 4 สถานะ</b><p>ON TRACK · AT RISK · BREACHED · PAUSED</p></div></li>
+              <li><span class="step-n">3</span><div><b>ภาระงานและอายุ Escalation</b><p>เห็นว่าใครถืองานเท่าไร และเรื่องไหนค้างนานที่สุด</p></div></li>
             </ol>
-            <div class="limit"><b>ข้อจำกัดของเดโม่</b>SLA คิดตามเวลาปฏิทิน ยังไม่ใช้วันทำการ ตัวเลขบนจอมาจากข้อมูลจำลอง</div>
+            <div class="win"><b>ทีมของคุณได้</b>เห็นเคสเสี่ยงเกิน SLA ก่อนลูกค้าร้องเรียน</div>
           </div>
         </div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Dashboard</span></div>
+      <div class="foot"><span>ภาพหน้าจอจากระบบเดโม · ข้อมูลจำลอง</span><span>Dashboard</span></div>
     </section>
 
-    <!-- 10. Trust -->
-    <section class="sl frame" hidden data-notes="สิทธิ์ในเดโม่เป็นการจำลองหน้าจอ ยังไม่ใช่ระบบความปลอดภัยจริง ประเด็น PDPA ทั้งหมดต้องให้ Legal / DPO ยืนยันก่อนใช้งาน">
-      <div class="kicker"><span class="pill">10</span>สิทธิ์และข้อมูลส่วนบุคคล</div>
-      <h2 class="title">ใครเห็นอะไรได้ ถูกกำหนดด้วยบทบาท ขอบเขต และ consent</h2>
+    <!-- 10. Who gets what -->
+    <section class="sl frame" hidden data-notes="ถามผู้ฟังว่าใครในห้องเป็นผู้ใช้กลุ่มไหน แล้วเน้นการ์ดของคนนั้น การซื้อระบบแบบนี้มักต้องผ่านหลายฝ่าย การ์ดนี้ช่วยให้แต่ละฝ่ายเห็นประโยชน์ของตัวเอง">
+      <div class="kicker"><span class="pill">10</span>ประโยชน์ตามบทบาท</div>
+      <h2 class="title">ทุกฝ่ายในบริษัทได้ประโยชน์จากระบบเดียวกัน</h2>
+      <div class="body">
+        <div class="roles">
+          <div class="card role"><i>ผู้บริหาร</i><h3>เห็นภาพรวมทุก OA</h3><ul class="bullets"><li>SLA และเคสเสี่ยงแบบทันที</li><li>ภาระงานของแต่ละแผนกและแต่ละคน</li></ul></div>
+          <div class="card role"><i>หัวหน้าทีม</i><h3>มอบงานได้ถูกคน</h3><ul class="bullets"><li>คำแนะนำ PIC ตามหัวข้อ</li><li>เห็นงานส่งต่อที่ค้างอยู่</li></ul></div>
+          <div class="card role"><i>เจ้าหน้าที่</i><h3>ทำงานจากหน้าจอเดียว</h3><ul class="bullets"><li>แชตและข้อมูลลูกค้าอยู่ด้วยกัน</li><li>ไม่ต้องถามลูกค้าซ้ำเมื่อรับเรื่องต่อ</li></ul></div>
+          <div class="card role"><i>Compliance · DPO</i><h3>ตรวจสอบได้ทุกขั้น</h3><ul class="bullets"><li>สิทธิ์ตามบทบาทและ audit log</li><li>consent แยกตาม OA มีหลักฐาน</li></ul></div>
+        </div>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ประโยชน์ตามบทบาท</span></div>
+    </section>
+
+    <!-- 11. Governance -->
+    <section class="sl frame" hidden data-notes="ฝ่าย Compliance ของลูกค้ามักถามเรื่องนี้ก่อนตัดสินใจ ตอบได้ว่าระบบออกแบบสิทธิ์ ขอบเขต และ consent ไว้ตั้งแต่แรก ข้อความ consent และระยะเวลาเก็บข้อมูลกำหนดร่วมกับ DPO ของลูกค้า">
+      <div class="kicker"><span class="pill">11</span>ความปลอดภัยและข้อมูลส่วนบุคคล</div>
+      <h2 class="title">ออกแบบให้ฝ่าย Compliance และ DPO ตรวจสอบได้</h2>
       <div class="body">
         <div class="trust">
           <div class="card">
@@ -338,8 +402,8 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
             <table class="table">
               <thead><tr><th>บทบาท</th><th>เห็นได้</th></tr></thead>
               <tbody>
-                <tr><td>Super Admin · Auditor</td><td>ทั้งองค์กร (Auditor อ่านอย่างเดียว)</td></tr>
-                <tr><td>Manager · Supervisor</td><td>แผนกตัวเอง และเคสที่ส่งเข้า/ออก</td></tr>
+                <tr><td>ผู้ดูแลระบบ · Auditor</td><td>ทั้งองค์กร (Auditor อ่านอย่างเดียว)</td></tr>
+                <tr><td>ผู้จัดการ · หัวหน้าทีม</td><td>แผนกตัวเอง และเคสที่ส่งเข้า/ออก</td></tr>
                 <tr><td>PIC</td><td>เฉพาะงานที่ได้รับมอบหมาย</td></tr>
                 <tr><td>แผนกที่ดู log</td><td>Case และ timeline อ่านอย่างเดียว</td></tr>
               </tbody>
@@ -349,62 +413,73 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
             <h3>ข้อมูลส่วนบุคคล</h3>
             <ul class="bullets">
               <li>เบอร์โทรและข้อมูล PII ปิดบังไว้ เปิดดูแล้วบันทึกลง audit</li>
-              <li>consent แยกตาม OA และระบุหมวดข้อมูลที่เก็บ</li>
-              <li>Segment ใช้ดูและกรองเท่านั้น ไม่มีการส่งข้อความออก</li>
+              <li>consent แยกตาม OA ระบุวัตถุประสงค์และหมวดข้อมูล</li>
+              <li>ไม่รวมโปรไฟล์ลูกค้าข้าม OA อัตโนมัติ</li>
             </ul>
           </div>
           <div class="card">
-            <h3>สิ่งที่เดโม่ยังไม่มี</h3>
+            <h3>การควบคุมการใช้งาน</h3>
             <ul class="bullets">
-              <li>ไม่ได้เชื่อม LINE จริง ไม่มีการส่งข้อความออก</li>
-              <li>ไม่มี login / SSO จริง ใช้ตัวสลับบทบาทแทน</li>
-              <li>ข้อมูลเก็บในเบราว์เซอร์ ไม่มีฐานข้อมูลกลาง</li>
+              <li>ทุกการเปลี่ยนแปลงสำคัญมีประวัติใน timeline</li>
+              <li>ความเห็นภายในไม่แสดงในแชตลูกค้า</li>
+              <li>Segment ใช้ดูและกรองเท่านั้น ไม่ส่งข้อความออก</li>
             </ul>
           </div>
         </div>
-        <div class="rule"><b>ต้องให้ Legal / DPO ยืนยัน</b>ฐานทางกฎหมายตาม PDPA · ถ้อยคำและวัตถุประสงค์ใน consent · ระยะเวลาเก็บข้อมูล</div>
+        <div class="rule"><b>ทำร่วมกับ DPO ของคุณ</b>ข้อความ consent · วัตถุประสงค์การใช้ข้อมูล · ระยะเวลาเก็บข้อมูล</div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>Governance</span></div>
+      <div class="foot"><span>Jacky Central</span><span>Governance</span></div>
     </section>
 
-    <!-- 11. Plan -->
-    <section class="sl frame" hidden data-notes="ยังไม่ใส่ระยะเวลาของแต่ละระยะ เพราะต้องให้ IT ประเมินการเชื่อมระบบก่อน ตัวชี้วัดของแต่ละระยะเลือกให้วัดได้จากข้อมูลในระบบเอง">
-      <div class="kicker"><span class="pill">11</span>แผนดำเนินการ</div>
-      <h2 class="title">เริ่มจาก 1 OA แล้วขยายเป็น 3 ระยะ</h2>
-      <div class="plan-strip ai-slot">{{AI:plan}}</div>
+    <!-- 12. Rollout -->
+    <section class="sl frame" hidden data-notes="บอกผู้ฟังตรงๆ ว่าสิ่งที่เห็นวันนี้เป็นระบบเดโม การเชื่อมกับ LINE OA จริงและระบบหลักของบริษัททำร่วมกันตอนติดตั้ง ระยะเวลาประเมินหลังดูระบบของลูกค้า">
+      <div class="kicker"><span class="pill">12</span>การเริ่มใช้งาน</div>
+      <h2 class="title">เริ่มใช้ได้ทีละ OA ไม่ต้องเปลี่ยนทั้งองค์กรในวันเดียว</h2>
       <div class="body">
-        <div class="plan">
-          <div class="card phase">
-            <span class="phase-tag">ระยะ 1</span>
-            <h3>Pilot ที่ Claims OA</h3>
-            <ul class="bullets">
-              <li>ตั้งค่าหัวข้อและ PIC ของ Claims, Legal และ Underwriting</li>
-              <li>เก็บ baseline เวลาตอบและการส่งต่อ</li>
-            </ul>
-            <div class="measure"><b>วัดผล</b>เวลาจนมี PIC · สัดส่วน Case ที่ปิดทัน SLA</div>
+        <div class="rollout">
+          <div class="card">
+            <h3>ขั้นตอนติดตั้ง</h3>
+            <ol class="steps compact">
+              <li><span class="step-n">1</span><div><b>Workshop ตั้งค่าองค์กร</b><p>แผนก หัวข้อ PIC และเงื่อนไข SLA</p></div></li>
+              <li><span class="step-n">2</span><div><b>เชื่อม LINE OA บัญชีแรก</b><p>ทดลองกับทีมจริงของคุณ</p></div></li>
+              <li><span class="step-n">3</span><div><b>ขยายไป OA และแผนกอื่น</b><p>เปิด Customer 360 หลังตกลงเรื่อง consent</p></div></li>
+              <li><span class="step-n">4</span><div><b>เชื่อมระบบหลัก</b><p>บัญชีพนักงาน (SSO) และระบบกรมธรรม์ / เคลม</p></div></li>
+            </ol>
           </div>
-          <div class="card phase">
-            <span class="phase-tag">ระยะ 2</span>
-            <h3>ขยายทุก OA และ Marketing</h3>
-            <ul class="bullets">
-              <li>เพิ่ม Service OA, Sales OA และหัวข้อของ Marketing</li>
-              <li>เปิด Customer 360 หลัง Legal / DPO อนุมัติ consent</li>
-            </ul>
-            <div class="measure"><b>วัดผล</b>สัดส่วน Escalation ที่ถูกรับภายในกำหนด</div>
-          </div>
-          <div class="card phase">
-            <span class="phase-tag">ระยะ 3</span>
-            <h3>เชื่อมระบบจริง</h3>
-            <ul class="bullets">
-              <li>LINE Messaging API, SSO และระบบกรมธรรม์ / เคลม</li>
-              <li>แจ้งเตือนจริงและฐานข้อมูลกลาง</li>
-            </ul>
-            <div class="measure"><b>วัดผล</b>เคสที่สร้างจากแชตโดยไม่ต้องคีย์ซ้ำ</div>
+          <div class="card">
+            <h3>สถานะของระบบวันนี้</h3>
+            <table class="table ready">
+              <thead><tr><th>ใช้งานได้ในเดโม</th><th>ทำร่วมกันตอนติดตั้ง</th></tr></thead>
+              <tbody>
+                <tr><td>Unified Inbox · Case · PIC</td><td>เชื่อม LINE Messaging API กับ OA จริง</td></tr>
+                <tr><td>ส่งเรื่องตามหัวข้อ · Escalation</td><td>บัญชีพนักงานและ SSO</td></tr>
+                <tr><td>Customer 360 · consent · Segment</td><td>ฐานข้อมูลกลางและเซิร์ฟเวอร์</td></tr>
+                <tr><td>Dashboard · SLA · Reports</td><td>เชื่อมระบบกรมธรรม์ / เคลม</td></tr>
+                <tr><td>สิทธิ์ตามบทบาท · audit</td><td>ปฏิทินวันทำการของ SLA</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="terms"><b>ระยะเวลา</b>กำหนดร่วมกับ IT หลังประเมินระบบ (ยังไม่มีตัวเลข)</div>
+        <div class="terms"><b>ระยะเวลาติดตั้ง</b>ประเมินหลังดูระบบและจำนวน OA ของคุณ</div>
       </div>
-      <div class="foot"><span>Jacky Central · เดโม</span><span>แผนดำเนินการ</span></div>
+      <div class="foot"><span>Jacky Central</span><span>การเริ่มใช้งาน</span></div>
+    </section>
+
+    <!-- 13. CTA -->
+    <section class="sl cta" hidden data-notes="ปิดด้วยข้อเสนอที่เสี่ยงต่ำ: ทดลองกับ OA จริง 1 บัญชี ทีมเดียว แล้วให้ตัวเลขของลูกค้าเองเป็นตัวตัดสิน">
+      <div class="ai-slot">{{AI:cta}}</div>
+      <div class="cta-shade"></div>
+      <div class="cta-body">
+        <img class="cta-logo" src="{{IMG:logo}}" alt="Jacky">
+        <h2 class="cta-title">เริ่มจากทดลองกับ LINE&nbsp;OA จริงของคุณ 1&nbsp;บัญชี</h2>
+        <p class="cta-sub">ใช้ทีมเดียว ใช้เคสจริง แล้วให้ตัวเลขของคุณเป็นตัวตัดสิน</p>
+        <ol class="cta-steps">
+          <li><b>นัดสาธิตกับทีมของคุณ</b><span>ดูระบบกับโจทย์จริงของบริษัท</span></li>
+          <li><b>Workshop ตั้งค่าหัวข้อและ PIC</b><span>ออกแบบตามโครงสร้างแผนกของคุณ</span></li>
+          <li><b>ทดลองกับ OA 1 บัญชี</b><span>วัดเวลาจนมีคนรับเรื่อง และเคสที่ทัน SLA</span></li>
+        </ol>
+      </div>
+      <div class="foot"><span>Jacky Central</span><span>ขอบคุณ</span></div>
     </section>
   </div>
 
@@ -488,5 +563,31 @@ body { background: var(--stage); color: var(--ink); font-family: var(--body); ov
   fit();
   fromHash();
   wake();
+})();
+</script>
+
+<script>
+// Cost calculator (slide 3). Defaults are illustrative; the audience enters its own numbers.
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const ids = ['chats', 'share', 'mins', 'wage', 'cut'];
+  const nf = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 });
+  function update() {
+    const v = Object.fromEntries(ids.map((k) => [k, Number($('c-' + k).value)]));
+    $('v-chats').textContent = nf.format(v.chats) + ' แชต';
+    $('v-share').textContent = v.share + '%';
+    $('v-mins').textContent = v.mins + ' นาที';
+    $('v-wage').textContent = nf.format(v.wage) + ' บาท';
+    $('v-cut').textContent = v.cut + '%';
+    const hours = (v.chats * (v.share / 100) * v.mins) / 60;
+    const cost = hours * v.wage;
+    const saved = hours * (v.cut / 100);
+    $('o-hours').textContent = nf.format(hours) + ' ชม.';
+    $('o-cost').textContent = nf.format(cost) + ' ฿';
+    $('o-saved').textContent = nf.format(saved) + ' ชม.';
+    $('o-year').textContent = nf.format(saved * v.wage * 12) + ' ฿';
+  }
+  ids.forEach((k) => $('c-' + k).addEventListener('input', update));
+  update();
 })();
 </script>

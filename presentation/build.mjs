@@ -15,7 +15,7 @@ const dataUri = (file) => `data:image/webp;base64,${readFileSync(file).toString(
 const AI_LABEL = {
   cover: 'ภาพ AI #1 · ปก',
   problem: 'ภาพ AI #2 · ปัญหา',
-  plan: 'ภาพ AI #3 · แผน 3 ระยะ',
+  cta: 'ภาพ AI #3 · ปิดท้าย',
 };
 
 function render(target) {
