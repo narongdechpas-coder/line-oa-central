@@ -87,7 +87,8 @@ export const useDemoStore = create<DemoStore>()(
     },
     {
       name: STORAGE_KEY,
-      version: 1,
+      // v2: adds customer management / CDP-lite collections. Older saved state is reset to the seed.
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => pick(s),
       // Unknown or older stored shape → start again from the seed rather than crash.

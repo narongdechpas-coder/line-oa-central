@@ -26,6 +26,19 @@ import type {
   Team,
   TimelineEvent,
 } from '../types/domain';
+import {
+  buildConsentRecords,
+  buildProfileLinks,
+  consentNotices,
+  customerNotes,
+  customFieldDefs,
+  customFieldValues,
+  extraCustomers,
+  ownerAssignments,
+  ownerOf,
+  policies,
+  segments,
+} from './seedCustomers';
 
 /** Fixed starting point of the deterministic demo clock. */
 export const DEMO_START = '2026-11-09T10:00:00+07:00';
@@ -137,14 +150,17 @@ const customerRows: [string, string, string, string, string[]][] = [
   ['cus-034', 'ch-claims', '1014', 'Phairoj Customer', ['Motor', 'Claim']],
 ];
 
-const customers: Customer[] = customerRows.map(([id, channelId, n, displayName, tags]) => ({
-  id,
-  channelId,
-  lineUserId: `U-DEMO-${n}`,
-  displayName,
-  phone: `08X-XXX-${n}`,
-  tags,
-}));
+const customers: Customer[] = [
+  ...customerRows.map(([id, channelId, n, displayName, tags]) => ({
+    id,
+    channelId,
+    lineUserId: `U-DEMO-${n}`,
+    displayName,
+    phone: `08X-XXX-${n}`,
+    tags,
+  })),
+  ...extraCustomers,
+].map((c) => ({ ...c, ownerUserId: ownerOf.get(c.id) ?? null, customFields: { ...(customFieldValues[c.id] ?? {}) } }));
 
 // Messages per conversation: [direction, 'MM-DD HH:mm', text]. 'O' = simulated outbound.
 type MsgRow = ['I' | 'O', string, string];
@@ -549,6 +565,8 @@ function buildTimeline(): TimelineEvent[] {
   return [...originalTimeline, ...extra];
 }
 
+const consentRecords = buildConsentRecords(customers, conversations, messages);
+
 export const SEED: DemoData = {
   meta: {
     demoName: 'Jacky Central',
@@ -570,6 +588,14 @@ export const SEED: DemoData = {
   comments,
   timeline: buildTimeline(),
   audit: [],
+  customFieldDefs,
+  ownerAssignments,
+  customerNotes,
+  policies,
+  consentNotices,
+  consentRecords,
+  profileLinks: buildProfileLinks(consentRecords),
+  segments,
 };
 
 /** Fresh deep copy of the seed so mutations never touch the original object. */

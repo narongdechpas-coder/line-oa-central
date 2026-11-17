@@ -54,28 +54,28 @@ export class DemoError extends Error {
 /** How far each mutation moves the demo clock, so timeline order stays stable. */
 export const CLOCK_STEP_MINUTES = 1;
 
-// ---- internal helpers ---------------------------------------------------------
+// ---- shared helpers (also used by customers.ts) ---------------------------------
 
-type Draft = DemoState;
+export type Draft = DemoState;
 
-function begin(state: DemoState): Draft {
+export function begin(state: DemoState): Draft {
   const d = structuredClone(state);
   d.now = addMinutes(d.now, CLOCK_STEP_MINUTES);
   return d;
 }
 
-function nextId(d: Draft, prefix: string): string {
+export function nextId(d: Draft, prefix: string): string {
   d.seq += 1;
   return `${prefix}-d${String(d.seq).padStart(4, '0')}`;
 }
 
-function actor(d: Draft): DemoUser {
+export function actor(d: Draft): DemoUser {
   const u = d.data.users.find((x) => x.id === d.actingUserId);
   if (!u) throw new DemoError('ไม่พบผู้ใช้เดโม่ที่เลือกอยู่', 'NOT_FOUND');
   return u;
 }
 
-function deny(message = 'บทบาทเดโม่นี้ไม่มีสิทธิ์ทำรายการนี้'): never {
+export function deny(message = 'บทบาทเดโม่นี้ไม่มีสิทธิ์ทำรายการนี้'): never {
   throw new DemoError(message, 'DENIED');
 }
 
@@ -105,7 +105,7 @@ function timeline(d: Draft, caseId: string, type: TimelineEvent['type'], label: 
   d.data.timeline.push({ id: nextId(d, 'tl'), caseId, type, label, actorId: d.actingUserId, createdAt: d.now });
 }
 
-function audit(d: Draft, action: string, resourceType: AuditEvent['resourceType'], resourceId: string) {
+export function audit(d: Draft, action: string, resourceType: AuditEvent['resourceType'], resourceId: string) {
   d.data.audit.push({
     id: nextId(d, 'au'),
     actorId: d.actingUserId,

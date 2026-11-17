@@ -1,6 +1,8 @@
 // Read-side mock services. Pure functions over DemoData, scoped to the acting demo user.
-import type { Case, Conversation, ConversationStatus, DemoData, DemoUser, Message } from '../../types/domain';
-import { canSeeCase, canSeeConversation } from '../../utils/permissions';
+import type { Case, Conversation, ConversationStatus, Customer, DataCategory, DemoData, DemoUser, Message, ProfileLink } from '../../types/domain';
+import { canSeeCase, canSeeConversation, canSeeCustomer } from '../../utils/permissions';
+import { shareableCategories } from '../../utils/consent';
+import { matchesAll } from '../../utils/segments';
 
 export interface ConversationFilters {
   channelId?: string | 'ALL';
@@ -72,3 +74,62 @@ export const caseTimeline = (data: DemoData, caseId: string) =>
   data.timeline
     .filter((t) => t.caseId === caseId)
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+
+// ---- Customers (CDP-lite) ----------------------------------------------------------------
+
+export const visibleCustomers = (data: DemoData, user: DemoUser): Customer[] =>
+  data.customers.filter((c) => canSeeCustomer(data, user, c));
+
+export const policiesOf = (data: DemoData, customerId: string) =>
+  data.policies.filter((p) => p.customerId === customerId).sort((a, b) => Date.parse(b.expiryDate) - Date.parse(a.expiryDate));
+
+export const customerNotesOf = (data: DemoData, customerId: string) =>
+  data.customerNotes
+    .filter((n) => n.customerId === customerId)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || Date.parse(b.createdAt) - Date.parse(a.createdAt));
+
+export const ownerHistoryOf = (data: DemoData, customerId: string) =>
+  data.ownerAssignments.filter((a) => a.customerId === customerId).sort((a, b) => Date.parse(b.assignedAt) - Date.parse(a.assignedAt));
+
+export const linksOf = (data: DemoData, customerId: string): ProfileLink[] =>
+  data.profileLinks
+    .filter((l) => l.customerAId === customerId || l.customerBId === customerId)
+    .sort((a, b) => Date.parse(b.requestedAt) - Date.parse(a.requestedAt));
+
+export interface LinkedProfileView {
+  customer: Customer;
+  viaLinkId: string;
+  /** Categories of this linked profile that may be displayed (from its consent notice). */
+  allowed: DataCategory[];
+}
+
+/**
+ * Customer 360: every profile reachable through APPROVED links (transitively).
+ * Each linked profile only exposes the categories its own consent notice covers.
+ */
+export function customer360(data: DemoData, customerId: string): LinkedProfileView[] {
+  const approved = data.profileLinks.filter((l) => l.status === 'APPROVED');
+  const seen = new Map<string, string>([[customerId, '']]);
+  const queue = [customerId];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const l of approved) {
+      const other = l.customerAId === cur ? l.customerBId : l.customerBId === cur ? l.customerAId : null;
+      if (other && !seen.has(other)) {
+        seen.set(other, l.id);
+        queue.push(other);
+      }
+    }
+  }
+  seen.delete(customerId);
+  return [...seen.entries()].flatMap(([id, linkId]) => {
+    const customer = data.customers.find((c) => c.id === id);
+    return customer ? [{ customer, viaLinkId: linkId, allowed: shareableCategories(data, id) }] : [];
+  });
+}
+
+export const segmentMembers = (data: DemoData, user: DemoUser, segmentId: string, nowIso: string): Customer[] => {
+  const seg = data.segments.find((s) => s.id === segmentId);
+  if (!seg) return [];
+  return visibleCustomers(data, user).filter((c) => matchesAll(data, c, seg.rules, nowIso));
+};
