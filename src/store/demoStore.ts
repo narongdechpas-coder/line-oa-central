@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { DEMO_START, cloneSeed } from '../data/seed';
 import * as svc from '../services/mock/operations';
 import * as cust from '../services/mock/customers';
+import * as topicSvc from '../services/mock/topics';
 import { DemoError } from '../services/mock/operations';
 import type { CaseStatus, ConsentPurpose, DemoState, Priority, SegmentRule } from '../types/domain';
 import type { EscalationAction } from '../utils/transitions';
@@ -47,6 +48,8 @@ interface DemoActions {
   deleteSegment: (segmentId: string) => ActionResult;
   saveField: (input: cust.CustomFieldInput) => ActionResult<string>;
   setFieldActive: (fieldId: string, active: boolean) => ActionResult;
+  saveTopic: (input: topicSvc.TopicInput) => ActionResult<string>;
+  setTopicActive: (topicId: string, active: boolean) => ActionResult;
 }
 
 export type DemoStore = DemoState & DemoActions;
@@ -123,12 +126,18 @@ export const useDemoStore = create<DemoStore>()(
             return { state: r.state, value: r.fieldId };
           }),
         setFieldActive: (fieldId, active) => plain((s) => cust.setCustomFieldActive(s, fieldId, active)),
+        saveTopic: (input) =>
+          run((s) => {
+            const r = topicSvc.saveTopic(s, input);
+            return { state: r.state, value: r.topicId };
+          }),
+        setTopicActive: (topicId, active) => plain((s) => topicSvc.setTopicActive(s, topicId, active)),
       };
     },
     {
       name: STORAGE_KEY,
-      // v2: adds customer management / CDP-lite collections. Older saved state is reset to the seed.
-      version: 2,
+      // v3: routing topics + Marketing department. Older saved state is reset to the seed.
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => pick(s),
       // Unknown or older stored shape → start again from the seed rather than crash.

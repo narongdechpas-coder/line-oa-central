@@ -16,6 +16,7 @@ import {
   Users,
   Filter,
   SlidersHorizontal,
+  Network,
 } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report } from '../../store/hooks';
@@ -39,6 +40,7 @@ const NAV = [
   { to: '/reports', label: 'Reports', icon: FileBarChart, perm: 'reports.view' as const },
 ];
 const ADMIN_NAV = [
+  { to: '/admin/topics', label: 'แผนกและหัวข้อ', icon: Network },
   { to: '/admin/channels', label: 'LINE OA Channels', icon: Radio },
   { to: '/admin/access', label: 'Roles & Access', icon: ShieldCheck },
   { to: '/admin/fields', label: 'Custom Fields', icon: SlidersHorizontal },
@@ -51,6 +53,7 @@ const TITLES: [RegExp, string][] = [
   [/^\/customers/, 'Customers'],
   [/^\/segments/, 'Customer Segments'],
   [/^\/admin\/fields/, 'Custom Fields'],
+  [/^\/admin\/topics/, 'แผนก → หัวข้อ → PIC'],
   [/^\/cases\/.+/, 'Case Workspace'],
   [/^\/cases/, 'Cases'],
   [/^\/escalations/, 'Internal Escalation'],

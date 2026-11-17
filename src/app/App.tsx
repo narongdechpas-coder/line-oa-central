@@ -14,6 +14,7 @@ import { CustomersPage } from '../features/customers/CustomersPage';
 import { CustomerProfilePage } from '../features/customers/CustomerProfilePage';
 import { SegmentsPage } from '../features/segments/SegmentsPage';
 import { CustomFieldsPage } from '../features/custom-fields/CustomFieldsPage';
+import { TopicsPage } from '../features/topics/TopicsPage';
 
 export function App() {
   return (
@@ -34,6 +35,7 @@ export function App() {
           <Route path="admin/channels" element={<ChannelsPage />} />
           <Route path="admin/access" element={<AccessControlPage />} />
           <Route path="admin/fields" element={<CustomFieldsPage />} />
+          <Route path="admin/topics" element={<TopicsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

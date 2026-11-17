@@ -78,6 +78,9 @@ const ownerRows: [string, string, string][] = [
   ['cus-022', 'usr-pic-9', '09-01 10:00'],
   ['cus-024', 'usr-pic-9', '11-07 09:10'],
   ['cus-026', 'usr-pic-9', '10-20 10:00'],
+  // Owners in Marketing although the customer contacted Claims / Sales OA (owner may be in any department)
+  ['cus-033', 'usr-mkt-1', '10-15 10:00'],
+  ['cus-030', 'usr-mkt-2', '10-15 10:00'],
 ];
 
 export const ownerAssignments: CustomerOwnerAssignment[] = [

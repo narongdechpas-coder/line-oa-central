@@ -28,6 +28,7 @@ const PERM_LABEL: Record<Permission, string> = {
   'profile.link.approve': 'อนุมัติการเชื่อมโปรไฟล์',
   'segment.manage': 'สร้าง / ลบ Segment',
   'pii.reveal': 'เปิดดูข้อมูลส่วนบุคคลเต็ม (บันทึก audit)',
+  'topic.manage': 'ตั้งค่าแผนก → หัวข้อ → PIC',
 };
 const SCOPE_LABEL = { ALL: 'ทั้งองค์กร', DEPARTMENT: 'แผนกของตนเอง', ASSIGNED_RESOURCE: 'เฉพาะงานที่ได้รับมอบหมาย' };
 

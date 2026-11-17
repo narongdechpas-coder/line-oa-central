@@ -15,17 +15,17 @@ import type {
   TaskStatus,
   TimelineEvent,
 } from '../../types/domain';
-import { skillsForCategory } from '../../utils/categories';
 import {
   can,
   canCancelEscalation,
   canDecideEscalation,
+  canReplyConversation,
   canSeeConversation,
   canUpdateTask,
   canWorkEscalation,
   canWorkOnCase,
 } from '../../utils/permissions';
-import { recommendPics } from '../../utils/scoring';
+import { rankPicsForCase } from '../../utils/routing';
 import { dueAtFor, resumeDueAt } from '../../utils/sla';
 import { addMinutes } from '../../utils/time';
 import {
@@ -197,8 +197,9 @@ export function sendSimulatedMessage(state: DemoState, conversationId: string, p
   const me = actor(d);
   const conv = d.data.conversations.find((x) => x.id === conversationId);
   if (!conv) throw new DemoError('ไม่พบบทสนทนา', 'NOT_FOUND');
-  if (!can(me, 'conversation.reply') || !canSeeConversation(d.data, me, conv)) deny();
-  if (me.role === 'PIC_AGENT' && conv.assignedUserId !== me.id) deny('PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย');
+  if (!canReplyConversation(d.data, me, conv)) {
+    deny(me.role === 'PIC_AGENT' ? 'PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย' : 'บทบาทนี้ตอบบทสนทนานี้ไม่ได้ (แผนกที่ดู log ได้อย่างเดียวตอบลูกค้าไม่ได้)');
+  }
   const text = payload.text.trim();
   if (!text) throw new DemoError('กรุณาพิมพ์ข้อความ');
   if (text.length > 1000) throw new DemoError('ข้อความยาวเกิน 1,000 ตัวอักษร');
@@ -223,17 +224,29 @@ export function sendSimulatedMessage(state: DemoState, conversationId: string, p
 
 export interface CreateCasePayload {
   title: string;
-  category: string;
+  /** Routing topic (configured by Admin). Decides the responsible department and PIC list. */
+  topicId: string;
   priority: Priority;
   description?: string;
+  /** Optional PIC from the topic's PIC list. Picking from the Admin-configured list counts as pre-approved. */
+  picUserId?: string | null;
+  /** Required when the topic belongs to another department: reason for the automatic escalation. */
+  escalationReason?: string;
 }
 
-/** Creates a case; origin channel and customer are COPIED from the conversation and never editable. */
+/**
+ * Creates a case; origin channel and customer are COPIED from the conversation and never editable.
+ * Routing by topic:
+ * - topic owned by the OA's department → case stays there; the chosen PIC is assigned directly.
+ * - topic owned by another department → case is created at the OA's department and an escalation
+ *   REQUESTED is opened automatically to the topic's department (chosen PIC = requested owner).
+ * - the customer's owner, if not a candidate for the topic, is added as an OBSERVER of the case.
+ */
 export function createCaseFromConversation(
   state: DemoState,
   conversationId: string,
   payload: CreateCasePayload,
-): { state: DemoState; caseId: string } {
+): { state: DemoState; caseId: string; escalationId: string | null } {
   const d = begin(state);
   const me = actor(d);
   const conv = d.data.conversations.find((x) => x.id === conversationId);
@@ -241,9 +254,22 @@ export function createCaseFromConversation(
   if (!can(me, 'case.create') || !canSeeConversation(d.data, me, conv)) deny();
   const title = payload.title.trim();
   if (!title) throw new DemoError('กรุณาระบุหัวข้อ Case');
-  if (!payload.category) throw new DemoError('กรุณาเลือกประเภท Case');
+  const topic = d.data.topics.find((t) => t.id === payload.topicId && t.active);
+  if (!topic) throw new DemoError('กรุณาเลือกหัวข้อเรื่อง');
   const channel = d.data.channels.find((x) => x.id === conv.channelId);
   if (!channel) throw new DemoError('ไม่พบ LINE OA ของบทสนทนา', 'NOT_FOUND');
+  const crossDept = topic.responsibleDepartmentId !== channel.departmentId;
+  if (crossDept && !payload.escalationReason?.trim()) throw new DemoError(`หัวข้อนี้เป็นของ ${depNameOf(d, topic.responsibleDepartmentId)} กรุณาระบุเหตุผลการส่งต่อ`);
+
+  // Validate the chosen PIC against the topic ranking (as if the case sat in the responsible department).
+  const ranking = rankPicsForCase(d.data, {
+    requiredSkills: topic.skills,
+    currentDepartmentId: topic.responsibleDepartmentId,
+    topicId: topic.id,
+    originalCustomerId: conv.customerId,
+  });
+  const pick = payload.picUserId ? ranking.ranked.find((r) => r.userId === payload.picUserId) : undefined;
+  if (payload.picUserId && !pick) throw new DemoError('PIC ที่เลือกไม่อยู่ในรายชื่อของหัวข้อนี้');
 
   const maxN = d.data.cases.reduce((m, c) => Math.max(m, Number(c.caseNumber.slice(-4)) || 0), 0);
   const n = String(maxN + 1).padStart(4, '0');
@@ -255,8 +281,9 @@ export function createCaseFromConversation(
     originalCustomerId: conv.customerId,
     title,
     ...(payload.description?.trim() ? { description: payload.description.trim() } : {}),
-    category: payload.category,
-    requiredSkills: skillsForCategory(payload.category),
+    category: topic.name,
+    topicId: topic.id,
+    requiredSkills: [...topic.skills],
     priority: payload.priority,
     status: 'NEW',
     statusBeforeEscalation: null,
@@ -271,9 +298,40 @@ export function createCaseFromConversation(
   };
   d.data.cases.push(c);
   if (conv.status === 'CLOSED') conv.status = 'OPEN';
-  timeline(d, c.id, 'CASE_CREATED', `สร้าง Case จาก ${channel.name}`);
+  timeline(d, c.id, 'CASE_CREATED', `สร้าง Case จาก ${channel.name} · หัวข้อ ${topic.name}`);
   audit(d, 'case.create', 'CASE', c.id);
-  return { state: d, caseId: c.id };
+
+  let escalationId: string | null = null;
+  if (!crossDept) {
+    if (pick) {
+      const top = ranking.ranked[0];
+      setPrimaryPic(d, c, pick.userId, top && top.userId !== pick.userId ? 'เลือกจากรายชื่อ PIC ของหัวข้อ (ไม่ใช่อันดับแรก)' : 'ตามรายชื่อ PIC ของหัวข้อ', pick.total);
+      applyCaseStatus(d, c, 'ASSIGNED');
+      audit(d, 'assignment.topic', 'ASSIGNMENT', c.id);
+    }
+  } else {
+    // Keep the handling agent of the conversation as origin PIC when eligible, so the case can return to them.
+    const handler = d.data.users.find((u) => u.id === conv.assignedUserId);
+    if (handler && handler.departmentId === channel.departmentId && (handler.role === 'PIC_AGENT' || handler.role === 'SUPERVISOR')) {
+      setPrimaryPic(d, c, handler.id, 'ผู้ดูแลบทสนทนาเดิม', null);
+      applyCaseStatus(d, c, 'ASSIGNED');
+    } else {
+      applyCaseStatus(d, c, 'TRIAGED');
+    }
+    escalationId = openEscalation(d, c, me, {
+      toDepartmentId: topic.responsibleDepartmentId,
+      reason: `หัวข้อ ${topic.name}: ${payload.escalationReason!.trim()}`,
+      requestedOwnerId: pick?.userId ?? null,
+    });
+  }
+
+  // Customer owner outside the topic's PIC list follows the case as OBSERVER (Q3 decision).
+  const ownerId = ranking.ownerOutsideList;
+  if (ownerId && ownerId !== c.currentOwnerId) {
+    d.data.assignments.push({ id: nextId(d, 'as'), caseId: c.id, userId: ownerId, assignmentType: 'OBSERVER', isActive: true, assignedAt: d.now, assignedBy: me.id, reason: 'ผู้ดูแลหลักของลูกค้า (ติดตาม)' });
+    timeline(d, c.id, 'ASSIGNED', `ผู้ดูแลหลักของลูกค้า ${nameOf(d, ownerId)} ติดตาม Case (OBSERVER)`);
+  }
+  return { state: d, caseId: c.id, escalationId };
 }
 
 export function transitionCase(state: DemoState, caseId: string, next: CaseStatus): DemoState {
@@ -313,7 +371,7 @@ export function changeCasePriority(state: DemoState, caseId: string, priority: P
 export function recommendPic(state: DemoState, caseId: string) {
   const c = state.data.cases.find((x) => x.id === caseId);
   if (!c) throw new DemoError(`ไม่พบ Case ${caseId}`, 'NOT_FOUND');
-  return recommendPics(c, state.data.users);
+  return rankPicsForCase(state.data, c).ranked;
 }
 
 export function assignPic(state: DemoState, caseId: string, userId: string, reason?: string): DemoState {
@@ -322,9 +380,9 @@ export function assignPic(state: DemoState, caseId: string, userId: string, reas
   const c = findCase(d, caseId);
   if (!canWorkOnCase(d.data, me, c, 'case.assign')) deny('เฉพาะ Manager / Supervisor ที่ดูแล Case นี้เท่านั้นที่มอบหมาย PIC ได้');
   if (!ASSIGNABLE_CASE_STATUSES.includes(c.status)) throw new DemoError(`มอบหมาย PIC ไม่ได้ขณะ Case อยู่ในสถานะ ${c.status}`);
-  const ranked = recommendPics(c, d.data.users);
+  const ranked = rankPicsForCase(d.data, c).ranked;
   const pick = ranked.find((r) => r.userId === userId);
-  if (!pick) throw new DemoError('ผู้ที่เลือกไม่อยู่ในรายชื่อ PIC ที่มอบหมายได้ของแผนกนี้');
+  if (!pick) throw new DemoError('ผู้ที่เลือกไม่อยู่ในรายชื่อ PIC ของหัวข้อ / แผนกนี้');
   const top = ranked[0];
   const isOverride = !!top && top.userId !== userId;
   const finalReason = reason?.trim() || (isOverride ? 'เลือกเอง (override คำแนะนำ)' : null);
@@ -354,6 +412,11 @@ export function createEscalation(
   const me = actor(d);
   const c = findCase(d, caseId);
   if (!canWorkOnCase(d.data, me, c, 'escalation.request')) deny();
+  return { state: d, escalationId: openEscalation(d, c, me, payload) };
+}
+
+/** Validates and opens an escalation on a draft. Shared by manual Escalate and topic routing. */
+function openEscalation(d: Draft, c: Case, me: DemoUser, payload: CreateEscalationPayload): string {
   if (!ESCALATABLE_CASE_STATUSES.includes(c.status)) throw new DemoError(`Escalate ไม่ได้ขณะ Case อยู่ในสถานะ ${c.status}`);
   if (d.data.escalations.some((e) => e.caseId === c.id && isEscalationActive(e.status))) {
     throw new DemoError('Case นี้มี Escalation ที่ยังไม่จบอยู่แล้ว');
@@ -390,7 +453,7 @@ export function createEscalation(
   applyCaseStatus(d, c, 'ESCALATED', `Case อยู่ระหว่าง Escalation (เดิม ${c.status})`);
   timeline(d, c.id, 'ESCALATED', `ส่งต่อภายในไปยัง ${depNameOf(d, e.toDepartmentId)} — ลูกค้ายังอยู่ที่ LINE OA เดิม`);
   audit(d, 'escalation.create', 'ESCALATION', e.id);
-  return { state: d, escalationId: e.id };
+  return e.id;
 }
 
 const ESC_ACTION_LABEL: Record<EscalationAction, string> = {

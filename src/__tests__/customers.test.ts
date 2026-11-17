@@ -7,6 +7,7 @@ import { customer360, segmentMembers } from '../services/mock/queries';
 import type { DemoState } from '../types/domain';
 import { canBeLinked, shareableCategories } from '../utils/consent';
 import { maskPhone } from '../utils/pii';
+import { canSeeCustomer } from '../utils/permissions';
 
 const fresh = (actingUserId = 'usr-admin'): DemoState => ({ data: cloneSeed(), now: new Date(DEMO_START).toISOString(), seq: 0, actingUserId });
 const as = (s: DemoState, userId: string) => svc.switchActingUser(s, userId);
@@ -37,16 +38,15 @@ describe('customer seed integrity', () => {
     }
   });
 
-  it('one active owner per customer, matching ownerUserId and the OA department', () => {
+  it('one active owner per customer, matching ownerUserId; owner is a PIC/Supervisor/Manager of any department', () => {
     for (const c of SEED.customers) {
       const active = SEED.ownerAssignments.filter((a) => a.customerId === c.id && a.isActive);
       expect(active.length, c.id).toBeLessThanOrEqual(1);
       expect(active[0]?.userId ?? null, c.id).toBe(c.ownerUserId ?? null);
-      if (c.ownerUserId) {
-        const dep = SEED.channels.find((ch) => ch.id === c.channelId)?.departmentId;
-        expect(SEED.users.find((u) => u.id === c.ownerUserId)?.departmentId, c.id).toBe(dep);
-      }
+      if (c.ownerUserId) expect(['PIC_AGENT', 'SUPERVISOR', 'MANAGER'], c.id).toContain(SEED.users.find((u) => u.id === c.ownerUserId)?.role);
     }
+    // owner outside the OA department exists in seed (Marketing owns a Claims OA customer)
+    expect(SEED.customers.find((c) => c.id === 'cus-033')?.ownerUserId).toBe('usr-mkt-1');
   });
 
   it('links join different OAs and respect consent', () => {
@@ -122,10 +122,23 @@ describe('customer owner', () => {
     expect(hist.filter((a) => a.isActive).map((a) => a.userId)).toEqual(['usr-pic-1']);
   });
 
-  it('owner must be in the OA department; other departments cannot assign', () => {
-    expectError(() => svc.assignCustomerOwner(as(fresh(), 'usr-manager'), 'cus-005', 'usr-pic-3'));
-    expectError(() => svc.assignCustomerOwner(as(fresh(), 'usr-mgr-service'), 'cus-005', 'usr-pic-1'), 'DENIED');
+  it('OA manager may pick an owner from any department; other managers only from their own', () => {
+    const s1 = svc.assignCustomerOwner(as(fresh(), 'usr-manager'), 'cus-005', 'usr-mkt-1');
+    expect(cus(s1, 'cus-005').ownerUserId).toBe('usr-mkt-1');
+    // Marketing manager may assign an unowned Claims customer to Marketing, not to Claims staff
+    const s2 = svc.assignCustomerOwner(as(fresh(), 'usr-mgr-mkt'), 'cus-005', 'usr-mkt-2');
+    expect(cus(s2, 'cus-005').ownerUserId).toBe('usr-mkt-2');
+    expectError(() => svc.assignCustomerOwner(as(fresh(), 'usr-mgr-mkt'), 'cus-005', 'usr-pic-1'));
+    // ...and cannot take over a customer owned by another department
+    expectError(() => svc.assignCustomerOwner(as(fresh(), 'usr-mgr-mkt'), 'cus-001', 'usr-mkt-2'), 'DENIED');
     expectError(() => svc.assignCustomerOwner(fresh('usr-pic-1'), 'cus-005', 'usr-pic-1'), 'DENIED');
+    expectError(() => svc.assignCustomerOwner(fresh(), 'cus-005', 'usr-auditor'));
+  });
+
+  it('Marketing sees customers it owns even on other OAs', () => {
+    const s = fresh('usr-mgr-mkt');
+    const ids = s.data.customers.filter((c) => canSeeCustomer(s.data, user(s, 'usr-mgr-mkt'), c)).map((c) => c.id).sort();
+    expect(ids).toEqual(['cus-030', 'cus-033']);
   });
 
   it('owner can be cleared', () => {

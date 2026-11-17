@@ -15,6 +15,7 @@ import { canBeLinked, consentOf, noticeOf, optionalPurposes, PURPOSE_LABEL } fro
 import {
   can,
   canAddCustomerNote,
+  assignableOwnerIds,
   canAssignCustomerOwner,
   canDecideLink,
   canEditCustomer,
@@ -99,14 +100,11 @@ export function assignCustomerOwner(state: DemoState, customerId: string, userId
   const d = begin(state);
   const me = actor(d);
   const c = findCustomer(d, customerId);
-  if (!canAssignCustomerOwner(d.data, me, c)) deny('มอบหมายผู้ดูแลหลักได้เฉพาะ Manager / Supervisor / Dept Admin ของแผนกเจ้าของ OA');
+  if (!canAssignCustomerOwner(d.data, me, c)) deny('บทบาทนี้มอบหมายผู้ดูแลหลักของลูกค้ารายนี้ไม่ได้');
   if ((c.ownerUserId ?? null) === userId) throw new DemoError(userId ? 'ผู้นี้เป็นผู้ดูแลหลักอยู่แล้ว' : 'ลูกค้ายังไม่มีผู้ดูแลหลัก');
-  const dep = d.data.channels.find((x) => x.id === c.channelId)?.departmentId;
-  if (userId) {
-    const u = d.data.users.find((x) => x.id === userId);
-    if (!u || u.departmentId !== dep || !['PIC_AGENT', 'SUPERVISOR', 'MANAGER'].includes(u.role)) {
-      throw new DemoError('ผู้ดูแลหลักต้องเป็น PIC / Supervisor / Manager ในแผนกเจ้าของ OA ของลูกค้า');
-    }
+  // Owner may be in ANY department (decision 4). Non-OA managers may only pick from their own department.
+  if (userId && !assignableOwnerIds(d.data, me, c).includes(userId)) {
+    throw new DemoError('เลือกผู้ดูแลหลักนี้ไม่ได้: ต้องเป็น PIC / Supervisor / Manager และอยู่ในแผนกที่บทบาทนี้ดูแล');
   }
   const prev = d.data.ownerAssignments.find((a) => a.customerId === c.id && a.isActive);
   if (prev) {

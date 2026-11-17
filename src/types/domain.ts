@@ -137,7 +137,10 @@ export interface Case {
   readonly originalCustomerId: string;
   title: string;
   description?: string;
+  /** Display name of the topic at creation (kept for history even if the topic is renamed). */
   category: string;
+  /** Routing topic chosen at creation; drives responsible department, observers and PIC list. */
+  topicId?: string | null;
   requiredSkills: string[];
   priority: Priority;
   status: CaseStatus;
@@ -229,6 +232,24 @@ export interface TimelineEvent {
   label: string;
   actorId?: string | null;
   createdAt: ISODate;
+}
+
+// ---- Routing topics ------------------------------------------------------------
+
+/**
+ * A case topic configured by Admin. One RESPONSIBLE department receives and owns the case
+ * (with an ordered PIC list); OBSERVER departments can read the case and its timeline only.
+ */
+export interface Topic {
+  id: string;
+  name: string;
+  description?: string;
+  skills: string[];
+  responsibleDepartmentId: string;
+  observerDepartmentIds: string[];
+  /** Ordered PIC list for this topic (users of the responsible department). */
+  picUserIds: string[];
+  active: boolean;
 }
 
 // ---- Customer Management / CDP-lite ------------------------------------------
@@ -382,7 +403,7 @@ export interface AuditEvent {
   id: string;
   actorId: string;
   action: string;
-  resourceType: 'CASE' | 'CONVERSATION' | 'ASSIGNMENT' | 'ESCALATION' | 'TASK' | 'DEMO' | 'CUSTOMER' | 'PROFILE_LINK' | 'SEGMENT' | 'CUSTOM_FIELD';
+  resourceType: 'CASE' | 'CONVERSATION' | 'ASSIGNMENT' | 'ESCALATION' | 'TASK' | 'DEMO' | 'CUSTOMER' | 'PROFILE_LINK' | 'SEGMENT' | 'CUSTOM_FIELD' | 'TOPIC';
   resourceId: string;
   outcome: 'SUCCESS' | 'DENIED' | 'FAILURE';
   createdAt: ISODate;
@@ -412,6 +433,7 @@ export interface DemoData {
   consentRecords: ConsentRecord[];
   profileLinks: ProfileLink[];
   segments: Segment[];
+  topics: Topic[];
 }
 
 /** Full persisted demo state: records plus the deterministic demo clock and ID counters. */

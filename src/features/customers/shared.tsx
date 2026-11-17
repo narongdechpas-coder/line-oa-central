@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Eye, ShieldCheck, ShieldOff } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
-import { canAssignCustomerOwner, canRevealPii } from '../../utils/permissions';
+import { assignableOwnerIds, canAssignCustomerOwner, canRevealPii } from '../../utils/permissions';
 import { consentOf, hasPurpose } from '../../utils/consent';
 import { maskPhone, maskValue } from '../../utils/pii';
 import { ms } from '../../utils/time';
@@ -83,8 +83,10 @@ export function OwnerAssignModal({ customerId, onClose }: { customerId: string; 
   const me = useActingUser();
   const L = useLookups();
   const c = data.customers.find((x) => x.id === customerId)!;
-  const dep = L.channel(c.channelId)?.departmentId;
-  const candidates = data.users.filter((u) => u.departmentId === dep && ['PIC_AGENT', 'SUPERVISOR', 'MANAGER'].includes(u.role));
+  const allowed = new Set(assignableOwnerIds(data, me, c));
+  const byDept = data.departments
+    .map((dep) => ({ dep, users: data.users.filter((u) => u.departmentId === dep.id && allowed.has(u.id)) }))
+    .filter((g) => g.users.length);
   const [userId, setUserId] = useState<string>(c.ownerUserId ?? '');
   const [reason, setReason] = useState('');
   const ok = canAssignCustomerOwner(data, me, c);
@@ -92,18 +94,26 @@ export function OwnerAssignModal({ customerId, onClose }: { customerId: string; 
     const target = userId || null;
     if (report(assign(c.id, target, reason), target ? `ผู้ดูแลหลัก: ${L.userName(target)}` : 'ยกเลิกผู้ดูแลหลักแล้ว')) onClose();
   };
+  const roleShort = (r: string) => (r === 'PIC_AGENT' ? 'PIC' : r === 'SUPERVISOR' ? 'Supervisor' : 'Manager');
   return (
     <Modal
       title={`ผู้ดูแลหลัก — ${c.displayName}`}
       onClose={onClose}
-      width={480}
+      width={500}
       footer={<><Button onClick={onClose}>ยกเลิก</Button><Button variant="primary" disabled={!ok || (userId || null) === (c.ownerUserId ?? null)} onClick={submit}>บันทึก</Button></>}
     >
-      <p className="muted small">ผู้ดูแลหลักดูแลความสัมพันธ์กับลูกค้าระยะยาวข้ามทุก Case (ต่างจาก PIC ที่รับผิดชอบทีละ Case) เลือกได้เฉพาะคนในแผนก {L.depName(dep)} ที่เป็นเจ้าของ {L.channel(c.channelId)?.name}</p>
-      <Field label="ผู้ดูแลหลัก" htmlFor="owner-user">
+      <p className="muted small">
+        ผู้ดูแลหลักดูแลความสัมพันธ์กับลูกค้าระยะยาวข้ามทุก Case (ต่างจาก PIC ที่รับผิดชอบทีละ Case) เลือกได้จากทุกแผนก
+        และไม่บังคับ — ผู้มุ่งหวังที่แค่สอบถามข้อมูลไม่จำเป็นต้องมี เมื่อสร้าง Case ผู้ดูแลหลักจะขึ้นเป็นลำดับแรกถ้าอยู่ในรายชื่อ PIC ของหัวข้อนั้น
+      </p>
+      <Field label="ผู้ดูแลหลัก" htmlFor="owner-user" hint={allowed.size && byDept.length === 1 && byDept[0]!.dep.id === me.departmentId ? `บทบาทนี้เลือกได้เฉพาะคนในแผนก ${L.depName(me.departmentId)}` : undefined}>
         <select id="owner-user" value={userId} onChange={(e) => setUserId(e.target.value)}>
           <option value="">— ไม่มีผู้ดูแลหลัก —</option>
-          {candidates.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.role === 'PIC_AGENT' ? 'PIC' : u.role === 'SUPERVISOR' ? 'Supervisor' : 'Manager'}</option>)}
+          {byDept.map(({ dep, users }) => (
+            <optgroup key={dep.id} label={dep.name}>
+              {users.map((u) => <option key={u.id} value={u.id}>{u.name} · {roleShort(u.role)}</option>)}
+            </optgroup>
+          ))}
         </select>
       </Field>
       <Field label="เหตุผล (ไม่บังคับ)" htmlFor="owner-reason">

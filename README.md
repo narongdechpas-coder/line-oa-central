@@ -54,6 +54,17 @@ password protection if it should be restricted.
 7. **Segments** — create a rule-based group with a live member count (view only, nothing is sent).
 8. **Admin → Custom Fields** — Department Admins manage fields only for their own OA.
 
+### Topic routing (Department → Topic → PIC)
+
+1. **Admin → แผนกและหัวข้อ** — each topic has ONE receiving department with an ordered PIC list, plus
+   departments that can only see the log (e.g. *Repair Coordination*: Claims receives, Marketing sees the log).
+2. **Inbox → Rungnapa (Claims OA)** → Create Case → topic *Motor Claim*: her owner (Phakamas, Marketing) is not on
+   the topic list, so she follows the case as **OBSERVER**; the top-ranked Claims PIC is preselected.
+3. **Inbox → Kanya (Sales OA)** → topic *Campaign Inquiry → Marketing*: her owner Tanakrit is on the list and is
+   **priority 1**. The case is created at Sales and **escalated automatically** to Marketing (reason required).
+4. Switch to **Chanida Marketing Manager** → accept the escalation. Open *JC-2026-0003* to see the read-only
+   observer view.
+
 Other things to try: switch to **Demo Auditor** (read-only) or a **PIC** (only assigned work,
 no Administration); press **+1 ชม.** on the demo clock to watch SLA states change.
 

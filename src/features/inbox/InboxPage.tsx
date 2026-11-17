@@ -4,7 +4,7 @@ import { Inbox, Lock, MessageSquarePlus, Send } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
 import { getConversation, lastMessage, listConversations, type ConversationFilters } from '../../services/mock/queries';
-import { can, canSeeCase, canSeeConversation, canSeeCustomer } from '../../utils/permissions';
+import { can, canReplyConversation, canSeeCase, canSeeConversation, canSeeCustomer } from '../../utils/permissions';
 import { CONVERSATION_STATUS_LABEL } from '../../utils/labels';
 import { formatDateTime, formatTime } from '../../utils/time';
 import { CONVERSATION_STATUSES } from '../../types/domain';
@@ -164,7 +164,7 @@ export function Thread({ conversationId }: { conversationId: string }) {
         }))
       : []),
   ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
-  const canReply = can(me, 'conversation.reply') && (me.role !== 'PIC_AGENT' || conv.conversation.assignedUserId === me.id);
+  const canReply = canReplyConversation(data, me, conv.conversation);
   const send = () => {
     const r = sendReply(conversationId, text);
     if (r.ok) {
@@ -231,7 +231,7 @@ export function Thread({ conversationId }: { conversationId: string }) {
             <Button type="submit" variant="primary" icon={<Send size={16} />}>บันทึก (จำลอง)</Button>
           </form>
         ) : (
-          <p className="muted small">บทบาทนี้ตอบลูกค้าไม่ได้{me.role === 'PIC_AGENT' ? ' (PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย)' : ''}</p>
+          <p className="muted small">บทบาทนี้ตอบลูกค้าไม่ได้{me.role === 'PIC_AGENT' ? ' (PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย)' : can(me, 'conversation.reply') ? ' (แผนกที่ดู log ได้อย่างเดียว)' : ''}</p>
         )}
         {error && <p className="field-error" role="alert">{error}</p>}
         <p className="composer-note">ข้อความจะถูกเก็บในเบราว์เซอร์นี้เท่านั้น — SIMULATED — NOT SENT TO LINE</p>

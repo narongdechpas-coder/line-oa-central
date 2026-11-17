@@ -40,7 +40,7 @@ describe('end-to-end scenario (service level)', () => {
 
     // 4–5. Create case; origin copied from conversation
     s = as(s, 'usr-sup-claims');
-    const created = svc.createCaseFromConversation(s, conv.id, { title: 'รถถูกชนแล้วหนี', category: 'Motor Claim', priority: 'HIGH' });
+    const created = svc.createCaseFromConversation(s, conv.id, { title: 'รถถูกชนแล้วหนี', topicId: 'tp-motor-claim', priority: 'HIGH' });
     s = created.state;
     const id = created.caseId;
     expect(caseOf(s, id)).toMatchObject({ status: 'NEW', originalChannelId: 'ch-claims', originalCustomerId: conv.customerId, currentDepartmentId: 'dep-claims' });
@@ -54,7 +54,7 @@ describe('end-to-end scenario (service level)', () => {
     // override to the second candidate: history kept, one active PRIMARY_PIC
     const second = ranked[1]!;
     s = svc.assignPic(s, id, second.userId, 'ลูกค้าเคยคุยกับคนนี้');
-    const hist = s.data.assignments.filter((a) => a.caseId === id);
+    const hist = s.data.assignments.filter((a) => a.caseId === id && a.assignmentType === 'PRIMARY_PIC');
     expect(hist).toHaveLength(2);
     expect(hist.filter((a) => a.isActive)).toHaveLength(1);
     expect(hist.find((a) => a.isActive)?.userId).toBe(second.userId);
@@ -126,7 +126,7 @@ describe('end-to-end scenario (service level)', () => {
 describe('roles', () => {
   it('Auditor cannot mutate anything', () => {
     const s = fresh('usr-auditor');
-    expectError(() => svc.createCaseFromConversation(s, 'conv-033', { title: 'x', category: 'Motor Claim', priority: 'LOW' }), 'DENIED');
+    expectError(() => svc.createCaseFromConversation(s, 'conv-033', { title: 'x', topicId: 'tp-motor-claim', priority: 'LOW' }), 'DENIED');
     expectError(() => svc.assignPic(s, 'case-0004', 'usr-pic-1'), 'DENIED');
     expectError(() => svc.transitionCase(s, 'case-0001', 'PENDING'), 'DENIED');
     expectError(() => svc.transitionEscalation(s, 'esc-002', 'ACCEPT'), 'DENIED');
@@ -201,7 +201,7 @@ describe('integrity', () => {
 
   it('validates required fields', () => {
     const s = fresh();
-    expectError(() => svc.createCaseFromConversation(s, 'conv-033', { title: '  ', category: 'Motor Claim', priority: 'LOW' }));
+    expectError(() => svc.createCaseFromConversation(s, 'conv-033', { title: '  ', topicId: 'tp-motor-claim', priority: 'LOW' }));
     expectError(() => svc.createEscalation(s, 'case-0001', { toDepartmentId: 'dep-legal', reason: '' }));
     expectError(() => svc.createEscalation(s, 'case-0001', { toDepartmentId: 'dep-claims', reason: 'same dept' }));
     expectError(() => svc.sendSimulatedMessage(s, 'conv-001', { text: '' }));

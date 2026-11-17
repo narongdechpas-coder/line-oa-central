@@ -62,9 +62,7 @@ Decisions taken where the handover did not define behaviour. Items marked **(ope
   Re-granting does not restore a link — a new request and approval are needed.
 - **Demo limits:** only optional purposes can be toggled, through a "simulate customer action" control
   (staff never change consent for a customer). Full withdrawal of required purposes is not modelled.
-- **Customer Owner** (relationship, long-term) is separate from case **PIC**. The owner must be in the
-  department that owns the customer's OA. In PIC assignment the owner gets a badge only — the score keeps
-  the spec weights (35/30/20/15).
+- **Customer Owner** (relationship, long-term) is separate from case **PIC** — see Topic routing below.
 - **PII:** phone numbers and PII custom fields are masked; every reveal is audited. Auditor may reveal
   (audited) but cannot edit. System Admin cannot reveal.
 - **Custom fields:** Department Admins manage fields for their own OA only. Key and type cannot change
@@ -72,7 +70,25 @@ Decisions taken where the handover did not define behaviour. Items marked **(ope
 - **Segments** are evaluated live, limited to the viewer's scope, and are view-only (no broadcast).
   PII fields cannot be used as segment rules.
 - LINE display name and LINE User ID are read-only (they come from LINE).
-- Persisted state version is 2; older saved demo state resets to the seed.
+
+## Topic routing (Department → Topic → PIC)
+- Create Case picks a **topic** (replaces the free "category"). A topic has ONE responsible department
+  (receives and owns the case, ordered PIC list) and any number of **observer** departments (read-only log).
+- Topic owned by the OA's department → case stays there; the PIC chosen from the topic list is assigned
+  directly (the Admin-configured list counts as pre-approved, so an agent may pick it).
+- Topic owned by another department → case is created at the OA's department and an escalation REQUESTED
+  is opened automatically (reason required); the chosen PIC becomes the requested owner.
+- Customer Owner on the topic list → pinned as priority 1 (score unchanged, spec weights kept).
+  Owner not on the list → shown separately and added as OBSERVER of the case (sees it, cannot act).
+- Observer departments see the case, its timeline and conversation, but cannot act, reply or open the
+  full customer profile.
+- After an escalation to a department that does not own the topic, every eligible PIC of that department
+  is a candidate.
+- Editing a topic affects new cases and later assignments only; existing cases do not move.
+- **Customer Owner** may be in any department and is optional (prospects may have none). OA-department
+  managers may pick anyone; managers of other departments only from their own department and only for
+  customers without an owner or owned by their department.
+- Marketing department added (manager + 3 PICs). Persisted state version is 3.
 
 ## For Legal / DPO review
 - Legal basis for processing for service delivery (consent or another PDPA basis).
