@@ -26,6 +26,20 @@ import type {
   Team,
   TimelineEvent,
 } from '../types/domain';
+import {
+  buildConsentRecords,
+  buildProfileLinks,
+  consentNotices,
+  customerNotes,
+  customFieldDefs,
+  customFieldValues,
+  extraCustomers,
+  ownerAssignments,
+  ownerOf,
+  policies,
+  segments,
+} from './seedCustomers';
+import { topics } from './seedTopics';
 
 /** Fixed starting point of the deterministic demo clock. */
 export const DEMO_START = '2026-11-09T10:00:00+07:00';
@@ -42,6 +56,7 @@ const departments: Department[] = [
   { id: 'dep-sales', code: 'SALES', name: 'Sales' },
   { id: 'dep-legal', code: 'LEGAL', name: 'Legal & Compliance' },
   { id: 'dep-underwriting', code: 'UW', name: 'Underwriting' },
+  { id: 'dep-marketing', code: 'MKT', name: 'Marketing' },
 ];
 
 const teams: Team[] = [
@@ -50,6 +65,7 @@ const teams: Team[] = [
   { id: 'team-sales', departmentId: 'dep-sales', name: 'Sales Support' },
   { id: 'team-legal', departmentId: 'dep-legal', name: 'Legal Advisory' },
   { id: 'team-uw', departmentId: 'dep-underwriting', name: 'Underwriting Review' },
+  { id: 'team-marketing', departmentId: 'dep-marketing', name: 'Customer Marketing' },
 ];
 
 const u = (
@@ -90,6 +106,10 @@ const users: DemoUser[] = [
   u('usr-mgr-uw', 'Chatchai UW Manager', 'MANAGER', 'dep-underwriting', 'team-uw', ['underwriting', 'risk'], 'AVAILABLE', 40, 14),
   u('usr-uw-1', 'Pornthip UW', 'PIC_AGENT', 'dep-underwriting', 'team-uw', ['underwriting', 'motor', 'property'], 'AVAILABLE', 35, 7),
   u('usr-uw-2', 'Yuttana UW', 'PIC_AGENT', 'dep-underwriting', 'team-uw', ['underwriting', 'property', 'risk'], 'BUSY', 70, 5),
+  u('usr-mgr-mkt', 'Chanida Marketing Manager', 'MANAGER', 'dep-marketing', 'team-marketing', ['marketing'], 'AVAILABLE', 35, 9),
+  u('usr-mkt-1', 'Phakamas Marketing', 'PIC_AGENT', 'dep-marketing', 'team-marketing', ['marketing', 'customer', 'motor'], 'AVAILABLE', 30, 5),
+  u('usr-mkt-2', 'Tanakrit Marketing', 'PIC_AGENT', 'dep-marketing', 'team-marketing', ['marketing', 'sales'], 'AVAILABLE', 45, 3),
+  u('usr-mkt-3', 'Sirilak Marketing', 'PIC_AGENT', 'dep-marketing', 'team-marketing', ['marketing', 'customer'], 'BUSY', 60, 2),
 ];
 
 const channels: Channel[] = [
@@ -137,14 +157,17 @@ const customerRows: [string, string, string, string, string[]][] = [
   ['cus-034', 'ch-claims', '1014', 'Phairoj Customer', ['Motor', 'Claim']],
 ];
 
-const customers: Customer[] = customerRows.map(([id, channelId, n, displayName, tags]) => ({
-  id,
-  channelId,
-  lineUserId: `U-DEMO-${n}`,
-  displayName,
-  phone: `08X-XXX-${n}`,
-  tags,
-}));
+const customers: Customer[] = [
+  ...customerRows.map(([id, channelId, n, displayName, tags]) => ({
+    id,
+    channelId,
+    lineUserId: `U-DEMO-${n}`,
+    displayName,
+    phone: `08X-XXX-${n}`,
+    tags,
+  })),
+  ...extraCustomers,
+].map((c) => ({ ...c, ownerUserId: ownerOf.get(c.id) ?? null, customFields: { ...(customFieldValues[c.id] ?? {}) } }));
 
 // Messages per conversation: [direction, 'MM-DD HH:mm', text]. 'O' = simulated outbound.
 type MsgRow = ['I' | 'O', string, string];
@@ -361,6 +384,12 @@ const caseRows: CaseRow[] = [
 
 const convById = new Map(conversations.map((c) => [c.id, c]));
 
+const topicIdOf = (category: string) => {
+  const t = topics.find((x) => x.name === category);
+  if (!t) throw new Error(`seed: no topic for category ${category}`);
+  return t.id;
+};
+
 const cases: Case[] = caseRows.map((r) => {
   const conv = convById.get(r.conv);
   if (!conv) throw new Error(`seed: unknown conversation ${r.conv}`);
@@ -374,6 +403,7 @@ const cases: Case[] = caseRows.map((r) => {
     title: r.title,
     ...(r.description ? { description: r.description } : {}),
     category: r.category,
+    topicId: topicIdOf(r.category),
     requiredSkills: r.skills,
     priority: r.priority,
     status: r.status,
@@ -549,6 +579,8 @@ function buildTimeline(): TimelineEvent[] {
   return [...originalTimeline, ...extra];
 }
 
+const consentRecords = buildConsentRecords(customers, conversations, messages);
+
 export const SEED: DemoData = {
   meta: {
     demoName: 'Jacky Central',
@@ -570,6 +602,15 @@ export const SEED: DemoData = {
   comments,
   timeline: buildTimeline(),
   audit: [],
+  customFieldDefs,
+  ownerAssignments,
+  customerNotes,
+  policies,
+  consentNotices,
+  consentRecords,
+  profileLinks: buildProfileLinks(consentRecords),
+  segments,
+  topics,
 };
 
 /** Fresh deep copy of the seed so mutations never touch the original object. */

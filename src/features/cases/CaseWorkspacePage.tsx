@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ClipboardPlus, FileText, Lock, MessageSquareShare, RefreshCw, UserCheck } from 'lucide-react';
+import { ArrowLeft, ClipboardPlus, Eye, FileText, Lock, MessageSquareShare, RefreshCw, UserCheck } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
 import { assignmentHistory, caseTimeline, getConversation } from '../../services/mock/queries';
-import { canSeeCase, canWorkOnCase } from '../../utils/permissions';
+import { canSeeCase, canWorkOnCase, isObserverOnly } from '../../utils/permissions';
+import { topicOf } from '../../utils/routing';
 import { computeSla } from '../../utils/sla';
 import {
   ASSIGNABLE_CASE_STATUSES,
@@ -77,7 +78,7 @@ export function CaseWorkspacePage() {
             <PriorityChip priority={c.priority} />
             <SlaChip state={sla.state} />
           </div>
-          <p className="ws-sub">{c.title} · {c.category} · ต้นทาง <ChannelBadge channelId={c.originalChannelId} small /></p>
+          <p className="ws-sub">{c.title} · หัวข้อ {c.category} · ต้นทาง <ChannelBadge channelId={c.originalChannelId} small /></p>
         </div>
         <div className="ws-actions">
           <Button icon={<UserCheck size={16} />} disabled={!can.assign} title={can.assign ? undefined : why(canWorkOnCase(data, me, c, 'case.assign'), false, `มอบหมายไม่ได้ขณะสถานะ ${CASE_STATUS_LABEL[c.status]}`)} onClick={() => setModal('assign')}>Assign PIC</Button>
@@ -87,6 +88,11 @@ export function CaseWorkspacePage() {
         </div>
       </div>
 
+      {isObserverOnly(data, me, c) && (
+        <div className="banner info observer-banner" role="note">
+          <Eye size={14} aria-hidden="true" /> คุณเปิด Case นี้ในฐานะแผนกที่ดู log ได้อย่างเดียว (ตามการตั้งค่าหัวข้อ “{c.category}”) — ดูประวัติและบทสนทนาได้ แต่ทำรายการหรือตอบลูกค้าไม่ได้
+        </div>
+      )}
       <div className="tabs" role="tablist" aria-label="ส่วนของ Case">
         {TABS.map(([k, label]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={`tab ${tab === k ? 'active' : ''}`} onClick={() => setTab(k)}>
@@ -137,6 +143,8 @@ function Overview({ caseId, onTab }: { caseId: string; onTab: (t: Tab) => void }
   const L = useLookups();
   const c = data.cases.find((x) => x.id === caseId)!;
   const conv = getConversation(data, c.conversationId);
+  const topic = topicOf(data, c);
+  const observers = data.assignments.filter((a) => a.caseId === c.id && a.isActive && a.assignmentType === 'OBSERVER');
   const sla = computeSla(c, now);
   const canEdit = canWorkOnCase(data, me, c, 'case.update') && isCaseOpen(c.status);
   const recent = caseTimeline(data, c.id).slice(-5).reverse();
@@ -182,6 +190,9 @@ function Overview({ caseId, onTab }: { caseId: string; onTab: (t: Tab) => void }
             ['แผนก', L.depName(c.currentDepartmentId)],
             ['ทีม', L.teamName(c.currentTeamId)],
             ['PIC', c.currentOwnerId ? <span key="o" className="inline"><Avatar name={L.userName(c.currentOwnerId)} size={22} /> {L.userName(c.currentOwnerId)}</span> : <span className="muted">ยังไม่มอบหมาย</span>],
+            ['หัวข้อ', <span key="tp">{c.category}{topic ? ` · รับเรื่อง: ${L.depName(topic.responsibleDepartmentId)}` : ''}</span>],
+            ['เห็น log', topic?.observerDepartmentIds.length ? topic.observerDepartmentIds.map((d) => L.depName(d)).join(', ') : <span key="nl" className="muted">—</span>],
+            ['ผู้ติดตาม', observers.length ? observers.map((a) => L.userName(a.userId)).join(', ') : <span key="no" className="muted">—</span>],
           ]}
         />
       </Card>

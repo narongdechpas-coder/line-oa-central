@@ -1,6 +1,17 @@
 // DEMO ROLE — permissions are simulated. This is UI behaviour only, not a security boundary.
 // Model: RBAC (what a role may do) + resource scope (which records it may touch).
-import type { Case, Conversation, DemoData, DemoUser, Escalation, InternalTask, RoleCode } from '../types/domain';
+import type {
+  Case,
+  Conversation,
+  Customer,
+  CustomFieldDefinition,
+  DemoData,
+  DemoUser,
+  Escalation,
+  InternalTask,
+  ProfileLink,
+  RoleCode,
+} from '../types/domain';
 import { isEscalationActive } from './transitions';
 
 export type Permission =
@@ -15,7 +26,16 @@ export type Permission =
   | 'task.update'
   | 'admin.view'
   | 'reports.view'
-  | 'audit.view';
+  | 'audit.view'
+  | 'customer.edit'
+  | 'customer.assignOwner'
+  | 'customer.note'
+  | 'field.manage'
+  | 'profile.link.request'
+  | 'profile.link.approve'
+  | 'segment.manage'
+  | 'pii.reveal'
+  | 'topic.manage';
 
 const ALL_WORK: Permission[] = [
   'case.create',
@@ -27,13 +47,23 @@ const ALL_WORK: Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<RoleCode, Permission[]> = {
-  SUPER_ADMIN: [...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'admin.view', 'reports.view', 'audit.view'],
-  SYSTEM_ADMIN: ['admin.view', 'reports.view', 'audit.view'],
-  DEPARTMENT_ADMIN: ['case.update', 'task.create', 'task.update', 'admin.view', 'reports.view'],
-  MANAGER: [...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'reports.view'],
-  SUPERVISOR: [...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'reports.view'],
-  PIC_AGENT: [...ALL_WORK, 'escalation.work'],
-  AUDITOR: ['admin.view', 'reports.view', 'audit.view'],
+  SUPER_ADMIN: [
+    ...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'admin.view', 'reports.view', 'audit.view',
+    'customer.edit', 'customer.assignOwner', 'customer.note', 'field.manage', 'profile.link.request', 'profile.link.approve', 'segment.manage', 'pii.reveal', 'topic.manage',
+  ],
+  SYSTEM_ADMIN: ['admin.view', 'reports.view', 'audit.view', 'field.manage', 'topic.manage'],
+  DEPARTMENT_ADMIN: ['case.update', 'task.create', 'task.update', 'admin.view', 'reports.view', 'customer.edit', 'customer.assignOwner', 'field.manage', 'segment.manage', 'topic.manage'],
+  MANAGER: [
+    ...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'reports.view',
+    'customer.edit', 'customer.assignOwner', 'customer.note', 'profile.link.request', 'profile.link.approve', 'segment.manage', 'pii.reveal',
+  ],
+  SUPERVISOR: [
+    ...ALL_WORK, 'case.assign', 'escalation.decide', 'escalation.work', 'reports.view',
+    'customer.edit', 'customer.assignOwner', 'customer.note', 'profile.link.request', 'pii.reveal',
+  ],
+  PIC_AGENT: [...ALL_WORK, 'escalation.work', 'customer.edit', 'customer.note', 'pii.reveal'],
+  // Auditor may reveal PII to inspect records (audited) but cannot change anything.
+  AUDITOR: ['admin.view', 'reports.view', 'audit.view', 'pii.reveal'],
 };
 
 export type ScopeType = 'ALL' | 'DEPARTMENT' | 'ASSIGNED_RESOURCE';
@@ -79,7 +109,8 @@ function caseAssignedTo(data: DemoData, c: Case, userId: string): boolean {
   return data.escalations.some((e) => e.caseId === c.id && e.requestedOwnerId === userId && isEscalationActive(e.status));
 }
 
-export function canSeeCase(data: DemoData, user: DemoUser, c: Case): boolean {
+/** Access as someone who works the case (not merely observing it). */
+function canSeeCaseAsWorker(data: DemoData, user: DemoUser, c: Case): boolean {
   switch (ROLE_SCOPE[user.role]) {
     case 'ALL':
       return true;
@@ -89,6 +120,21 @@ export function canSeeCase(data: DemoData, user: DemoUser, c: Case): boolean {
       return caseAssignedTo(data, c, user.id);
   }
 }
+
+/** Read-only access: observer department of the case topic, or an active OBSERVER assignment. */
+export function isCaseObserver(data: DemoData, user: DemoUser, c: Case): boolean {
+  const topic = c.topicId ? data.topics.find((t) => t.id === c.topicId) : undefined;
+  if (ROLE_SCOPE[user.role] === 'DEPARTMENT' && user.departmentId && topic?.observerDepartmentIds.includes(user.departmentId)) return true;
+  return data.assignments.some((a) => a.caseId === c.id && a.userId === user.id && a.isActive && a.assignmentType === 'OBSERVER');
+}
+
+export function canSeeCase(data: DemoData, user: DemoUser, c: Case): boolean {
+  return canSeeCaseAsWorker(data, user, c) || isCaseObserver(data, user, c);
+}
+
+/** True when the user can see the case only as an observer (log view, no actions). */
+export const isObserverOnly = (data: DemoData, user: DemoUser, c: Case) =>
+  !canSeeCaseAsWorker(data, user, c) && isCaseObserver(data, user, c);
 
 export function canSeeConversation(data: DemoData, user: DemoUser, conv: Conversation): boolean {
   switch (ROLE_SCOPE[user.role]) {
@@ -118,7 +164,7 @@ export function canSeeTask(data: DemoData, user: DemoUser, t: InternalTask): boo
 
 /** Work on a case: PIC only on cases they own; department roles on cases in scope. */
 export function canWorkOnCase(data: DemoData, user: DemoUser, c: Case, p: Permission): boolean {
-  if (!can(user, p) || !canSeeCase(data, user, c)) return false;
+  if (!can(user, p) || !canSeeCaseAsWorker(data, user, c)) return false;
   if (ROLE_SCOPE[user.role] === 'ASSIGNED_RESOURCE' && p !== 'task.update') return c.currentOwnerId === user.id;
   return true;
 }
@@ -147,7 +193,124 @@ export function canCancelEscalation(user: DemoUser, e: Escalation): boolean {
 
 export function canUpdateTask(data: DemoData, user: DemoUser, t: InternalTask): boolean {
   if (!can(user, 'task.update') || !canSeeTask(data, user, t)) return false;
+  const tc = data.cases.find((x) => x.id === t.caseId);
+  if (tc && isObserverOnly(data, user, tc) && t.assignedUserId !== user.id) return false;
   if (ROLE_SCOPE[user.role] !== 'ASSIGNED_RESOURCE') return true;
   const c = data.cases.find((x) => x.id === t.caseId);
   return t.assignedUserId === user.id || c?.currentOwnerId === user.id;
+}
+
+// ---- Customers (CDP-lite) ----------------------------------------------------------
+
+const channelDept = (data: DemoData, channelId: string) => data.channels.find((c) => c.id === channelId)?.departmentId ?? null;
+
+/** PIC "own" customer: they are the Customer Owner, or handle the customer's conversation. */
+function isOwnCustomer(data: DemoData, user: DemoUser, c: Customer): boolean {
+  if (c.ownerUserId === user.id) return true;
+  return data.conversations.some((v) => v.customerId === c.id && v.assignedUserId === user.id);
+}
+
+const userDept = (data: DemoData, userId: string | null | undefined) => (userId ? (data.users.find((u) => u.id === userId)?.departmentId ?? null) : null);
+
+export function canSeeCustomer(data: DemoData, user: DemoUser, c: Customer): boolean {
+  switch (ROLE_SCOPE[user.role]) {
+    case 'ALL':
+      return true;
+    case 'DEPARTMENT':
+      if (channelDept(data, c.channelId) === user.departmentId) return true;
+      // the customer's owner works in this department (owner may be in any department)
+      if (c.ownerUserId && userDept(data, c.ownerUserId) === user.departmentId) return true;
+      break;
+    case 'ASSIGNED_RESOURCE':
+      if (isOwnCustomer(data, user, c)) return true;
+      break;
+  }
+  // Through a case the user works on. Observer departments see the case log, not the full customer profile.
+  return data.cases.some((k) => k.originalCustomerId === c.id && canSeeCaseAsWorker(data, user, k));
+}
+
+/** Edit tags / custom fields. Each field is further limited by its editableByRoles. */
+export function canEditCustomer(data: DemoData, user: DemoUser, c: Customer): boolean {
+  if (!can(user, 'customer.edit') || !canSeeCustomer(data, user, c)) return false;
+  if (ROLE_SCOPE[user.role] === 'ASSIGNED_RESOURCE') return isOwnCustomer(data, user, c);
+  if (ROLE_SCOPE[user.role] === 'DEPARTMENT') return channelDept(data, c.channelId) === user.departmentId || userDept(data, c.ownerUserId) === user.departmentId;
+  return true;
+}
+
+export const canEditField = (user: DemoUser, def: CustomFieldDefinition) => def.active && def.editableByRoles.includes(user.role);
+
+/**
+ * Customer Owner may be in ANY department. Who can set it: ALL-scope roles; managers of the OA's
+ * department (any owner); managers of another department only for owners from their own department
+ * (checked in the service, which knows the target owner).
+ */
+export function canAssignCustomerOwner(data: DemoData, user: DemoUser, c: Customer): boolean {
+  if (!can(user, 'customer.assignOwner')) return false;
+  if (ROLE_SCOPE[user.role] === 'ALL') return true;
+  if (channelDept(data, c.channelId) === user.departmentId) return true;
+  return !!user.departmentId && (userDept(data, c.ownerUserId) === user.departmentId || !c.ownerUserId);
+}
+
+/** Owners a user may pick for this customer. */
+export function assignableOwnerIds(data: DemoData, user: DemoUser, c: Customer): string[] {
+  const eligible = data.users.filter((u) => ['PIC_AGENT', 'SUPERVISOR', 'MANAGER'].includes(u.role) && u.departmentId);
+  if (ROLE_SCOPE[user.role] === 'ALL' || channelDept(data, c.channelId) === user.departmentId) return eligible.map((u) => u.id);
+  return eligible.filter((u) => u.departmentId === user.departmentId).map((u) => u.id);
+}
+
+/** Reply in a conversation: workers of the OA department or of a case on it — never observers. */
+export function canReplyConversation(data: DemoData, user: DemoUser, conv: Conversation): boolean {
+  if (!can(user, 'conversation.reply')) return false;
+  if (user.role === 'PIC_AGENT') return conv.assignedUserId === user.id;
+  if (ROLE_SCOPE[user.role] === 'ALL') return true;
+  if (channelDept(data, conv.channelId) === user.departmentId) return true;
+  return data.cases.some((k) => k.conversationId === conv.id && canWorkOnCase(data, user, k, 'conversation.reply'));
+}
+
+/** Topics: ALL-scope admins manage any; Department Admins only topics their department receives. */
+export function canManageTopic(user: DemoUser, topic?: { responsibleDepartmentId: string }): boolean {
+  if (!can(user, 'topic.manage')) return false;
+  if (ROLE_SCOPE[user.role] === 'ALL') return true;
+  return !topic || topic.responsibleDepartmentId === user.departmentId;
+}
+
+export function canAddCustomerNote(data: DemoData, user: DemoUser, c: Customer): boolean {
+  if (!can(user, 'customer.note') || !canSeeCustomer(data, user, c)) return false;
+  return ROLE_SCOPE[user.role] !== 'ASSIGNED_RESOURCE' || isOwnCustomer(data, user, c);
+}
+
+export function canRevealPii(data: DemoData, user: DemoUser, c: Customer): boolean {
+  if (!can(user, 'pii.reveal') || !canSeeCustomer(data, user, c)) return false;
+  return ROLE_SCOPE[user.role] !== 'ASSIGNED_RESOURCE' || isOwnCustomer(data, user, c);
+}
+
+/** Department Admins manage fields only for OAs of their own department; ALL-scope roles manage any. */
+export function canManageField(data: DemoData, user: DemoUser, def?: Pick<CustomFieldDefinition, 'channelIds'>): boolean {
+  if (!can(user, 'field.manage')) return false;
+  if (ROLE_SCOPE[user.role] === 'ALL') return true;
+  if (!def) return true;
+  if (def.channelIds === 'ALL') return false;
+  return def.channelIds.every((ch) => channelDept(data, ch) === user.departmentId);
+}
+
+export function canRequestLink(data: DemoData, user: DemoUser, c: Customer): boolean {
+  return can(user, 'profile.link.request') && canSeeCustomer(data, user, c);
+}
+
+/** Approver: Manager of the department owning either OA, or Super Admin. Never the requester. */
+export function canDecideLink(data: DemoData, user: DemoUser, link: ProfileLink): boolean {
+  if (!can(user, 'profile.link.approve') || link.requestedBy === user.id) return false;
+  if (ROLE_SCOPE[user.role] === 'ALL') return true;
+  const a = data.customers.find((c) => c.id === link.customerAId);
+  const b = data.customers.find((c) => c.id === link.customerBId);
+  return [a, b].some((c) => c && channelDept(data, c.channelId) === user.departmentId);
+}
+
+/** Unlink: anyone who could request a link on either side. */
+export function canUnlink(data: DemoData, user: DemoUser, link: ProfileLink): boolean {
+  if (!can(user, 'profile.link.request')) return false;
+  return [link.customerAId, link.customerBId].some((id) => {
+    const c = data.customers.find((x) => x.id === id);
+    return !!c && canSeeCustomer(data, user, c);
+  });
 }

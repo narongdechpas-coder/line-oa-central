@@ -50,6 +50,52 @@ Decisions taken where the handover did not define behaviour. Items marked **(ope
 - PIC may reply only on conversations assigned to them, and change only cases they own.
 - System Admin and Auditor are read-only for case work. Reports hidden from PIC.
 
+## Customer Management / CDP-lite
+- **No merge.** Customer identity stays `(channelId, lineUserId)`. Cross-OA views use governed links only.
+- **Consent per OA (example text, not legal wording).** Each notice lists purposes (required vs. optional)
+  and data categories. Linking needs the optional purpose `CROSS_SERVICE_LINKING` on **both** profiles.
+- **Purpose limitation in Customer 360.** A linked profile shows only the data categories in its own
+  notice (e.g. a Sales OA profile never exposes policy or claim data). Only APPROVED links count.
+- **Approver:** Manager of the department owning either OA, or Super Admin; never the requester.
+  Consent is re-checked at approval.
+- **Withdrawal:** withdrawing the linking purpose suspends approved links and auto-rejects pending ones.
+  Re-granting does not restore a link — a new request and approval are needed.
+- **Demo limits:** only optional purposes can be toggled, through a "simulate customer action" control
+  (staff never change consent for a customer). Full withdrawal of required purposes is not modelled.
+- **Customer Owner** (relationship, long-term) is separate from case **PIC** — see Topic routing below.
+- **PII:** phone numbers and PII custom fields are masked; every reveal is audited. Auditor may reveal
+  (audited) but cannot edit. System Admin cannot reveal.
+- **Custom fields:** Department Admins manage fields for their own OA only. Key and type cannot change
+  after creation; deactivating hides a field but keeps stored values.
+- **Segments** are evaluated live, limited to the viewer's scope, and are view-only (no broadcast).
+  PII fields cannot be used as segment rules.
+- LINE display name and LINE User ID are read-only (they come from LINE).
+
+## Topic routing (Department → Topic → PIC)
+- Create Case picks a **topic** (replaces the free "category"). A topic has ONE responsible department
+  (receives and owns the case, ordered PIC list) and any number of **observer** departments (read-only log).
+- Topic owned by the OA's department → case stays there; the PIC chosen from the topic list is assigned
+  directly (the Admin-configured list counts as pre-approved, so an agent may pick it).
+- Topic owned by another department → case is created at the OA's department and an escalation REQUESTED
+  is opened automatically (reason required); the chosen PIC becomes the requested owner.
+- Customer Owner on the topic list → pinned as priority 1 (score unchanged, spec weights kept).
+  Owner not on the list → shown separately and added as OBSERVER of the case (sees it, cannot act).
+- Observer departments see the case, its timeline and conversation, but cannot act, reply or open the
+  full customer profile.
+- After an escalation to a department that does not own the topic, every eligible PIC of that department
+  is a candidate.
+- Editing a topic affects new cases and later assignments only; existing cases do not move.
+- **Customer Owner** may be in any department and is optional (prospects may have none). OA-department
+  managers may pick anyone; managers of other departments only from their own department and only for
+  customers without an owner or owned by their department.
+- Marketing department added (manager + 3 PICs). Persisted state version is 3.
+
+## For Legal / DPO review
+- Legal basis for processing for service delivery (consent or another PDPA basis).
+- Wording of consent notices, purposes and retention periods.
+- Whether withdrawing consent should affect open cases.
+- Which policy data customer service may see.
+
 ## Known limitations
 - No backend, no multi-user sync: each browser has its own state.
 - Attachments are placeholders; no upload/download.

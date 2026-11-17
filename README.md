@@ -41,6 +41,30 @@ password protection if it should be restricted.
 9. **Change status → RESOLVED → CLOSED** (confirmation). Check **Reports**.
 10. **Reset demo data** (sidebar) restores the seed.
 
+### Customer Management / CDP-lite
+
+1. **Customers** → filter *กรมธรรม์หมดใน 30 วัน* → open *Mali Customer (Claims OA)*.
+2. Phone is masked — **แสดง** reveals it and writes an audit entry. Edit custom fields and tags; change the **Customer Owner**.
+3. **Customer 360** — the linked *Mali (Service OA)* profile shows only the data categories covered by
+   that OA's consent notice (claim detail is out of scope). Records are never merged.
+4. As **Krit Supervisor**, open *Wanida Customer* → Customer 360 → **ขอเชื่อมโปรไฟล์** → pick *Boonmee (Service OA)*.
+   Profiles without linking consent cannot be selected.
+5. As **Orawan Manager** → Customers → *คำขอเชื่อมโปรไฟล์* → approve. The requester cannot approve their own request.
+6. Wanida → **Consent** tab → *จำลอง: ลูกค้าถอนความยินยอม* → the link is suspended automatically.
+7. **Segments** — create a rule-based group with a live member count (view only, nothing is sent).
+8. **Admin → Custom Fields** — Department Admins manage fields only for their own OA.
+
+### Topic routing (Department → Topic → PIC)
+
+1. **Admin → แผนกและหัวข้อ** — each topic has ONE receiving department with an ordered PIC list, plus
+   departments that can only see the log (e.g. *Repair Coordination*: Claims receives, Marketing sees the log).
+2. **Inbox → Rungnapa (Claims OA)** → Create Case → topic *Motor Claim*: her owner (Phakamas, Marketing) is not on
+   the topic list, so she follows the case as **OBSERVER**; the top-ranked Claims PIC is preselected.
+3. **Inbox → Kanya (Sales OA)** → topic *Campaign Inquiry → Marketing*: her owner Tanakrit is on the list and is
+   **priority 1**. The case is created at Sales and **escalated automatically** to Marketing (reason required).
+4. Switch to **Chanida Marketing Manager** → accept the escalation. Open *JC-2026-0003* to see the read-only
+   observer view.
+
 Other things to try: switch to **Demo Auditor** (read-only) or a **PIC** (only assigned work,
 no Administration); press **+1 ชม.** on the demo clock to watch SLA states change.
 
@@ -50,8 +74,10 @@ no Administration); press **+1 ชม.** on the demo clock to watch SLA states c
 src/
   app/            router, App
   components/     layout shell, common UI (chips, cards, fields), overlays (modal, toast)
-  features/       dashboard, inbox, cases, assignment, escalation, tasks, channels, access-control, reports
+  features/       dashboard, inbox, customers, segments, custom-fields, cases, assignment, escalation,
+                  tasks, channels, access-control, reports
   data/seed.ts    fictional seed (extends docs/handover/04_data/mock/seed.json, original IDs kept)
+  data/seedCustomers.ts  fictional custom fields, policies, consent notices/records, links, segments
   services/mock/  mock service boundary — pure functions over demo state (swap for real API later)
   store/          Zustand store, localStorage persistence (key `jacky-central-demo-v1`)
   types/          domain types and enums (aligned with the OpenAPI reference)

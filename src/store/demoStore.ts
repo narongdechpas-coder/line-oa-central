@@ -3,8 +3,10 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { DEMO_START, cloneSeed } from '../data/seed';
 import * as svc from '../services/mock/operations';
+import * as cust from '../services/mock/customers';
+import * as topicSvc from '../services/mock/topics';
 import { DemoError } from '../services/mock/operations';
-import type { CaseStatus, DemoState, Priority } from '../types/domain';
+import type { CaseStatus, ConsentPurpose, DemoState, Priority, SegmentRule } from '../types/domain';
 import type { EscalationAction } from '../utils/transitions';
 
 export const STORAGE_KEY = 'jacky-central-demo-v1';
@@ -32,6 +34,22 @@ interface DemoActions {
   createTask: (caseId: string, payload: svc.CreateTaskPayload) => ActionResult<string>;
   updateTask: (taskId: string, patch: svc.TaskPatch) => ActionResult;
   addComment: (taskId: string, body: string) => ActionResult;
+  // customers / CDP-lite
+  updateCustomer: (customerId: string, patch: cust.CustomerPatch) => ActionResult;
+  assignCustomerOwner: (customerId: string, userId: string | null, reason?: string) => ActionResult;
+  addCustomerNote: (customerId: string, body: string, pinned?: boolean) => ActionResult;
+  toggleNotePin: (noteId: string) => ActionResult;
+  revealPii: (customerId: string, field: string) => ActionResult;
+  simulateConsent: (customerId: string, purpose: ConsentPurpose, grant: boolean) => ActionResult;
+  requestLink: (customerAId: string, customerBId: string, reason: string) => ActionResult<string>;
+  decideLink: (linkId: string, decision: 'APPROVE' | 'REJECT', note?: string) => ActionResult;
+  unlink: (linkId: string, reason: string) => ActionResult;
+  createSegment: (payload: { name: string; description?: string; rules: SegmentRule[] }) => ActionResult<string>;
+  deleteSegment: (segmentId: string) => ActionResult;
+  saveField: (input: cust.CustomFieldInput) => ActionResult<string>;
+  setFieldActive: (fieldId: string, active: boolean) => ActionResult;
+  saveTopic: (input: topicSvc.TopicInput) => ActionResult<string>;
+  setTopicActive: (topicId: string, active: boolean) => ActionResult;
 }
 
 export type DemoStore = DemoState & DemoActions;
@@ -83,11 +101,43 @@ export const useDemoStore = create<DemoStore>()(
           }),
         updateTask: (taskId, patch) => plain((s) => svc.updateInternalTask(s, taskId, patch)),
         addComment: (taskId, body) => plain((s) => svc.addInternalComment(s, taskId, body)),
+        updateCustomer: (customerId, patch) => plain((s) => cust.updateCustomerProfile(s, customerId, patch)),
+        assignCustomerOwner: (customerId, userId, reason) => plain((s) => cust.assignCustomerOwner(s, customerId, userId, reason)),
+        addCustomerNote: (customerId, body, pinned) => plain((s) => cust.addCustomerNote(s, customerId, body, pinned)),
+        toggleNotePin: (noteId) => plain((s) => cust.toggleNotePin(s, noteId)),
+        revealPii: (customerId, field) => plain((s) => cust.revealPii(s, customerId, field)),
+        simulateConsent: (customerId, purpose, grant) => plain((s) => cust.simulateConsentChange(s, customerId, purpose, grant)),
+        requestLink: (a, b, reason) =>
+          run((s) => {
+            const r = cust.requestProfileLink(s, a, b, reason);
+            return { state: r.state, value: r.linkId };
+          }),
+        decideLink: (linkId, decision, note) => plain((s) => cust.decideProfileLink(s, linkId, decision, note)),
+        unlink: (linkId, reason) => plain((s) => cust.unlinkProfile(s, linkId, reason)),
+        createSegment: (payload) =>
+          run((s) => {
+            const r = cust.createSegment(s, payload);
+            return { state: r.state, value: r.segmentId };
+          }),
+        deleteSegment: (segmentId) => plain((s) => cust.deleteSegment(s, segmentId)),
+        saveField: (input) =>
+          run((s) => {
+            const r = cust.saveCustomFieldDef(s, input);
+            return { state: r.state, value: r.fieldId };
+          }),
+        setFieldActive: (fieldId, active) => plain((s) => cust.setCustomFieldActive(s, fieldId, active)),
+        saveTopic: (input) =>
+          run((s) => {
+            const r = topicSvc.saveTopic(s, input);
+            return { state: r.state, value: r.topicId };
+          }),
+        setTopicActive: (topicId, active) => plain((s) => topicSvc.setTopicActive(s, topicId, active)),
       };
     },
     {
       name: STORAGE_KEY,
-      version: 1,
+      // v3: routing topics + Marketing department. Older saved state is reset to the seed.
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => pick(s),
       // Unknown or older stored shape → start again from the seed rather than crash.

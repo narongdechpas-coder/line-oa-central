@@ -20,6 +20,15 @@ const PERM_LABEL: Record<Permission, string> = {
   'admin.view': 'ดูหน้า Administration',
   'reports.view': 'ดู Reports',
   'audit.view': 'ดู Audit log',
+  'customer.edit': 'แก้ข้อมูลลูกค้า / custom field',
+  'customer.assignOwner': 'มอบหมายผู้ดูแลหลัก',
+  'customer.note': 'บันทึกภายในของลูกค้า',
+  'field.manage': 'จัดการ Custom field',
+  'profile.link.request': 'ขอเชื่อมโปรไฟล์ข้าม OA',
+  'profile.link.approve': 'อนุมัติการเชื่อมโปรไฟล์',
+  'segment.manage': 'สร้าง / ลบ Segment',
+  'pii.reveal': 'เปิดดูข้อมูลส่วนบุคคลเต็ม (บันทึก audit)',
+  'topic.manage': 'ตั้งค่าแผนก → หัวข้อ → PIC',
 };
 const SCOPE_LABEL = { ALL: 'ทั้งองค์กร', DEPARTMENT: 'แผนกของตนเอง', ASSIGNED_RESOURCE: 'เฉพาะงานที่ได้รับมอบหมาย' };
 

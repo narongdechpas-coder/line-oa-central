@@ -66,8 +66,12 @@ export const isEligiblePic = (u: DemoUser): boolean =>
 export function recommendPics(
   c: Pick<Case, 'requiredSkills' | 'currentDepartmentId'>,
   users: DemoUser[],
+  /** When given (topic PIC list), only these users are candidates. */
+  allowUserIds?: string[],
 ): PicRecommendation[] {
-  const pool = users.filter((u) => isEligiblePic(u) && u.departmentId === c.currentDepartmentId);
+  const pool = users.filter(
+    (u) => isEligiblePic(u) && u.departmentId === c.currentDepartmentId && (!allowUserIds || allowUserIds.includes(u.id)),
+  );
   const ranked = pool
     .map((u) => ({ ...scoreCandidate(c.requiredSkills, u), _u: u }))
     .sort((a, b) => b.total - a.total || a._u.workload - b._u.workload || a._u.name.localeCompare(b._u.name));

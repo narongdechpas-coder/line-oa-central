@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { Star } from 'lucide-react';
 import { useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
-import { SCORE_WEIGHTS, recommendPics } from '../../utils/scoring';
+import { SCORE_WEIGHTS } from '../../utils/scoring';
+import { rankPicsForCase, topicOf } from '../../utils/routing';
 import { AVAILABILITY_LABEL } from '../../utils/labels';
 import { Modal } from '../../components/overlays/Modal';
 import { Avatar, Button, EmptyState, Field } from '../../components/common/ui';
@@ -20,7 +21,9 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
   const assignPic = useDemoStore((s) => s.assignPic);
   const L = useLookups();
   const c = data.cases.find((x) => x.id === caseId)!;
-  const ranked = useMemo(() => recommendPics(c, data.users), [c, data.users]);
+  const ranking = useMemo(() => rankPicsForCase(data, c), [data, c]);
+  const ranked = ranking.ranked;
+  const topic = topicOf(data, c);
   const [selected, setSelected] = useState<string>(ranked.find((r) => r.userId !== c.currentOwnerId)?.userId ?? '');
   const [reason, setReason] = useState('');
   const isOverride = !!selected && ranked[0]?.userId !== selected;
@@ -43,9 +46,13 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
       }
     >
       <p className="muted small">
-        คะแนนแนะนำ = ทักษะ 35% + ภาระงาน 30% + ความพร้อม 20% + ประสบการณ์ 15% · ผู้สมัครคือ PIC / Supervisor ของแผนก {L.depName(c.currentDepartmentId)}{' '}
-        <DemoTag>DEMO LOGIC</DemoTag> คะแนนใช้ประกอบการตัดสินใจเท่านั้น ผู้จัดการเป็นคนยืนยัน
+        คะแนนแนะนำ = ทักษะ 35% + ภาระงาน 30% + ความพร้อม 20% + ประสบการณ์ 15% ·{' '}
+        {ranking.fromTopic ? <>ผู้สมัครคือรายชื่อ PIC ของหัวข้อ <strong>{topic?.name}</strong> (ตั้งค่าโดย Admin)</> : <>ผู้สมัครคือ PIC / Supervisor ทั้งหมดของแผนก {L.depName(c.currentDepartmentId)} (แผนกนี้ไม่ใช่ผู้รับเรื่องของหัวข้อ)</>}{' '}
+        <DemoTag>DEMO LOGIC</DemoTag> ผู้ดูแลหลักของลูกค้าขึ้นลำดับแรกเมื่ออยู่ในรายชื่อ (คะแนนไม่เปลี่ยน) ผู้จัดการเป็นคนยืนยัน
       </p>
+      {ranking.ownerOutsideList && (
+        <p className="muted small">ผู้ดูแลหลักของลูกค้า {L.userName(ranking.ownerOutsideList)} ({L.depName(L.user(ranking.ownerOutsideList)?.departmentId)}) ไม่อยู่ในรายชื่อนี้ — ติดตาม Case ในฐานะผู้ติดตาม</p>
+      )}
       {ranked.length === 0 ? (
         <EmptyState title="ไม่มี PIC ที่มอบหมายได้ในแผนกนี้" hint="ถ้าต้องการให้แผนกอื่นช่วย ให้ใช้ Escalate" />
       ) : (
@@ -62,6 +69,7 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
                   <strong>{u.name}</strong>
                   {r.recommended && <Chip tone="blue"><Star size={11} aria-hidden="true" /> แนะนำ</Chip>}
                   {current && <Chip tone="gray">PIC ปัจจุบัน</Chip>}
+                  {r.isCustomerOwner && <Chip tone="purple">ผู้ดูแลหลักของลูกค้า · ลำดับแรก</Chip>}
                   <div className="muted small">
                     {L.teamName(u.teamId)} · {u.role === 'SUPERVISOR' ? 'Supervisor' : 'PIC'} · {AVAILABILITY_LABEL[u.availability]} · ภาระงาน {u.workload}% · {u.experienceYears} ปี
                   </div>

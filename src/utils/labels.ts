@@ -1,5 +1,5 @@
 // Thai UI labels for centralized enums. Codes stay visible in tooltips for traceability.
-import type { Availability, CaseStatus, ConversationStatus, EscalationStatus, Priority, SlaState, TaskStatus } from '../types/domain';
+import type { Availability, CaseStatus, ConversationStatus, EscalationStatus, PolicyStatus, Priority, ProfileLinkStatus, SlaState, TaskStatus } from '../types/domain';
 
 export const CASE_STATUS_LABEL: Record<CaseStatus, string> = {
   NEW: 'ใหม่',
@@ -84,3 +84,15 @@ export const ESCALATION_TONE: Record<EscalationStatus, Tone> = {
 };
 export const TASK_TONE: Record<TaskStatus, Tone> = { OPEN: 'blue', IN_PROGRESS: 'amber', BLOCKED: 'red', DONE: 'green', CANCELLED: 'gray' };
 export const SLA_TONE: Record<SlaState, Tone> = { ON_TRACK: 'green', AT_RISK: 'amber', BREACHED: 'red', PAUSED: 'gray' };
+
+export const POLICY_STATUS_LABEL: Record<PolicyStatus, string> = { ACTIVE: 'มีผล', EXPIRED: 'หมดอายุ', CANCELLED: 'ยกเลิก' };
+export const POLICY_TONE: Record<PolicyStatus, Tone> = { ACTIVE: 'green', EXPIRED: 'gray', CANCELLED: 'red' };
+
+export const LINK_STATUS_LABEL: Record<ProfileLinkStatus, string> = {
+  REQUESTED: 'รออนุมัติ',
+  APPROVED: 'เชื่อมแล้ว',
+  REJECTED: 'ปฏิเสธ',
+  SUSPENDED: 'ระงับ',
+  UNLINKED: 'ยกเลิกการเชื่อม',
+};
+export const LINK_TONE: Record<ProfileLinkStatus, Tone> = { REQUESTED: 'blue', APPROVED: 'green', REJECTED: 'red', SUSPENDED: 'amber', UNLINKED: 'gray' };

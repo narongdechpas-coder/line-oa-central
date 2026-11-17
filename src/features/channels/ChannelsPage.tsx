@@ -5,6 +5,8 @@ import { useLookups } from '../../store/hooks';
 import { can } from '../../utils/permissions';
 import { isCaseOpen } from '../../utils/transitions';
 import { Card, Restricted } from '../../components/common/ui';
+import { CATEGORY_LABEL, PURPOSE_LABEL } from '../../utils/consent';
+import { Chip } from '../../components/common/Chip';
 import { DemoTag } from '../../components/common/Chip';
 
 export function ChannelsPage() {
@@ -37,6 +39,31 @@ export function ChannelsPage() {
           </table>
         </div>
         <p className="muted small">แต่ละ OA เป็นช่องทางอิสระ ลูกค้าผูกกับ OA ที่ทักเข้ามาเท่านั้น (channel + LINE User ID) และการตอบกลับใช้ OA เดิมเสมอ</p>
+      </Card>
+
+      <Card title={<>ข้อความขอความยินยอม (Consent notice) <DemoTag>ตัวอย่าง — ไม่ใช่ข้อความทางกฎหมาย</DemoTag></>}>
+        <p className="muted small">แสดงให้ลูกค้าเห็นตอนขอรับบริการผ่าน OA (จำลอง) ระบุขอบเขตการเก็บและใช้ข้อมูลให้ตรงกับบริการของ OA นั้น ข้อ “เชื่อมข้อมูลกับบริการอื่น” แยกเป็นข้อที่ลูกค้าเลือกได้</p>
+        <div className="notice-grid">
+          {data.consentNotices.map((n) => {
+            const recs = data.consentRecords.filter((r) => r.noticeId === n.id);
+            const linking = recs.filter((r) => r.grantedPurposes.includes('CROSS_SERVICE_LINKING')).length;
+            return (
+              <article key={n.id} className="esc-card">
+                <header className="esc-head"><strong>{n.title}</strong><Chip tone="gray">v{n.version}</Chip></header>
+                <p className="small muted">{data.channels.find((c) => c.id === n.channelId)?.name} · ลูกค้ายอมรับ {recs.length} ราย · ยินยอมเชื่อมข้อมูล {linking} ราย</p>
+                <ul className="purpose-list">
+                  {n.purposes.map((p) => <li key={p.purpose}><Chip tone={p.required ? 'blue' : 'gray'}>{p.required ? 'จำเป็น' : 'เลือกได้'}</Chip> {PURPOSE_LABEL[p.purpose]}</li>)}
+                </ul>
+                <div className="tags">{n.dataCategories.map((x) => <Chip key={x} tone="neutral">{CATEGORY_LABEL[x]}</Chip>)}</div>
+                <details>
+                  <summary className="small link-btn">ดูข้อความเต็ม</summary>
+                  <p className="consent-body small">{n.body}</p>
+                  <p className="muted small">ระยะเวลาเก็บ: {n.retentionText}</p>
+                </details>
+              </article>
+            );
+          })}
+        </div>
       </Card>
     </div>
   );

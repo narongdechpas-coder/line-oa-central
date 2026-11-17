@@ -4,7 +4,7 @@ import { Inbox, Lock, MessageSquarePlus, Send } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
 import { getConversation, lastMessage, listConversations, type ConversationFilters } from '../../services/mock/queries';
-import { can, canSeeCase, canSeeConversation } from '../../utils/permissions';
+import { can, canReplyConversation, canSeeCase, canSeeConversation, canSeeCustomer } from '../../utils/permissions';
 import { CONVERSATION_STATUS_LABEL } from '../../utils/labels';
 import { formatDateTime, formatTime } from '../../utils/time';
 import { CONVERSATION_STATUSES } from '../../types/domain';
@@ -12,6 +12,8 @@ import { Avatar, Button, EmptyState, KeyValue, Restricted } from '../../componen
 import { CaseStatusChip, Chip, DemoTag } from '../../components/common/Chip';
 import { ChannelBadge } from '../channels/ChannelBadge';
 import { CreateCaseModal } from './CreateCaseModal';
+import { ConsentBadge, PiiValue } from '../customers/shared';
+import { consentOf, PURPOSE_LABEL } from '../../utils/consent';
 
 export function InboxPage() {
   const { conversationId } = useParams();
@@ -149,7 +151,20 @@ export function Thread({ conversationId }: { conversationId: string }) {
     bottom.current?.scrollIntoView?.({ block: 'end' });
   }, [conv.messages.length, conversationId]);
 
-  const canReply = can(me, 'conversation.reply') && (me.role !== 'PIC_AGENT' || conv.conversation.assignedUserId === me.id);
+  // Consent events are system lines in the thread: shown to staff, never messages sent to the customer.
+  const rec = consentOf(data, conv.conversation.customerId);
+  const threadItems: ({ kind: 'msg'; at: string; m: (typeof conv.messages)[number] } | { kind: 'consent'; at: string; key: string; text: string })[] = [
+    ...conv.messages.map((m) => ({ kind: 'msg' as const, at: m.createdAt, m })),
+    ...(rec && rec.evidenceConversationId === conv.conversation.id
+      ? rec.history.map((h, i) => ({
+          kind: 'consent' as const,
+          at: h.at,
+          key: `${rec.id}-${i}`,
+          text: i === 0 ? `ลูกค้ากดยอมรับ Consent v${rec.noticeVersion}` : `ลูกค้า${h.action === 'GRANTED' ? 'ให้' : 'ถอน'}ความยินยอม: ${h.purposes.map((p) => PURPOSE_LABEL[p]).join(', ')}`,
+        }))
+      : []),
+  ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  const canReply = canReplyConversation(data, me, conv.conversation);
   const send = () => {
     const r = sendReply(conversationId, text);
     if (r.ok) {
@@ -172,20 +187,15 @@ export function Thread({ conversationId }: { conversationId: string }) {
         <DemoTag>SIMULATED DATA</DemoTag>
       </header>
       <div className="messages">
-        {conv.messages.map((m) => (
-          <div key={m.id} className={`msg ${m.direction === 'OUTBOUND' ? 'out' : 'in'}`}>
-            <div className="bubble">{m.text}</div>
-            <div className="msg-meta">
-              {formatDateTime(m.createdAt)}
-              {m.direction === 'OUTBOUND' && (
-                <>
-                  {m.sentByUserId && <> · {L.userName(m.sentByUserId)}</>}
-                  <span className="not-sent">SIMULATED — NOT SENT TO LINE</span>
-                </>
-              )}
+        {threadItems.map((item) =>
+          item.kind === 'consent' ? (
+            <div key={item.key} className="sys-event" role="note">
+              <Lock size={11} aria-hidden="true" /> {item.text} · {formatDateTime(item.at)} <span className="not-sent">SIMULATED</span>
             </div>
-          </div>
-        ))}
+          ) : (
+          <MessageRow key={item.m.id} m={item.m} senderName={L.userName(item.m.sentByUserId)} />
+          ),
+        )}
         <div ref={bottom} />
       </div>
       <div className="composer">
@@ -221,7 +231,7 @@ export function Thread({ conversationId }: { conversationId: string }) {
             <Button type="submit" variant="primary" icon={<Send size={16} />}>บันทึก (จำลอง)</Button>
           </form>
         ) : (
-          <p className="muted small">บทบาทนี้ตอบลูกค้าไม่ได้{me.role === 'PIC_AGENT' ? ' (PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย)' : ''}</p>
+          <p className="muted small">บทบาทนี้ตอบลูกค้าไม่ได้{me.role === 'PIC_AGENT' ? ' (PIC ตอบได้เฉพาะบทสนทนาที่ได้รับมอบหมาย)' : can(me, 'conversation.reply') ? ' (แผนกที่ดู log ได้อย่างเดียว)' : ''}</p>
         )}
         {error && <p className="field-error" role="alert">{error}</p>}
         <p className="composer-note">ข้อความจะถูกเก็บในเบราว์เซอร์นี้เท่านั้น — SIMULATED — NOT SENT TO LINE</p>
@@ -233,6 +243,7 @@ export function Thread({ conversationId }: { conversationId: string }) {
 function CustomerPanel({ conversationId, onCreated }: { conversationId: string; onCreated: (caseId: string) => void }) {
   const data = useDemoStore((s) => s.data);
   const me = useActingUser();
+  const L = useLookups();
   const [creating, setCreating] = useState(false);
   const conv = getConversation(data, conversationId)!;
   const cus = conv.customer;
@@ -247,11 +258,14 @@ function CustomerPanel({ conversationId, onCreated }: { conversationId: string; 
         items={[
           ['LINE OA', <ChannelBadge key="c" channelId={conv.conversation.channelId} />],
           ['LINE User ID', <span key="u" className="mono">{cus?.lineUserId} <DemoTag>MOCK</DemoTag></span>],
-          ['โทรศัพท์', cus?.phone ?? '—'],
+          ['โทรศัพท์', cus ? <PiiValue key="p" customer={cus} field="phone" value={cus.phone} kind="phone" /> : '—'],
+          ['ผู้ดูแลหลัก', cus?.ownerUserId ? L.userName(cus.ownerUserId) : <span key="o" className="muted">ยังไม่มี</span>],
+          ['Consent', cus ? <ConsentBadge key="cs" customerId={cus.id} /> : '—'],
           ['แท็ก', <span key="t" className="tags">{cus?.tags.map((t) => <Chip key={t} tone="gray">{t}</Chip>)}</span>],
         ]}
       />
       <p className="muted small">ตัวตนลูกค้าผูกกับ OA นี้เท่านั้น ระบบไม่รวมลูกค้าข้าม OA แม้ชื่อเหมือนกัน</p>
+      {cus && canSeeCustomer(data, me, cus) && <Link to={`/customers/${cus.id}`} className="btn btn-secondary btn-sm">เปิดโปรไฟล์ลูกค้า</Link>}
 
       <h3 className="side-sub">Case ที่เกี่ยวข้อง</h3>
       {conv.cases.length === 0 && <p className="muted small">ยังไม่มี Case</p>}
@@ -286,5 +300,22 @@ function CustomerPanel({ conversationId, onCreated }: { conversationId: string; 
         />
       )}
     </aside>
+  );
+}
+
+function MessageRow({ m, senderName }: { m: { id: string; direction: 'INBOUND' | 'OUTBOUND'; text: string; createdAt: string; sentByUserId?: string | null }; senderName: string }) {
+  return (
+    <div className={`msg ${m.direction === 'OUTBOUND' ? 'out' : 'in'}`}>
+      <div className="bubble">{m.text}</div>
+      <div className="msg-meta">
+        {formatDateTime(m.createdAt)}
+        {m.direction === 'OUTBOUND' && (
+          <>
+            {m.sentByUserId && <> · {senderName}</>}
+            <span className="not-sent">SIMULATED — NOT SENT TO LINE</span>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
