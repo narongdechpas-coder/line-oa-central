@@ -1,0 +1,1376 @@
+openapi: 3.1.0
+info:
+  title: Jacky Central Communication & Case Management API
+  version: 1.0.0
+  summary: Centralized communication and case orchestration API
+  description: |
+    API baseline for Jacky Central. The platform connects multiple independent
+    LINE Official Accounts (OAs) and manages conversations, cases, assignments,
+    internal escalations, tasks, access scopes, SLA, and audit records.
+
+    Core invariants:
+      - A customer identity is scoped to one LINE OA: (channel_id, line_user_id).
+      - A conversation is bound to a customer from the same LINE OA.
+      - A case preserves its original channel and original customer.
+      - Escalation changes internal responsibility only; it never migrates the
+        customer's communication channel.
+      - Customer-facing replies are sent through the original LINE OA bound to
+        the conversation. The server derives the channel; clients cannot select it.
+      - Access authority is authorization (RBAC + ABAC/resource scopes), not
+        business approval authority.
+    This is an implementation baseline. Confirm provider-specific LINE webhook
+    event contracts and organization policies before production release.
+  contact:
+    name: Jacky Central API Team
+servers:
+  - url: https://api.example.com/api/v1
+    description: Production base URL placeholder
+  - url: https://staging-api.example.com/api/v1
+    description: Staging base URL placeholder
+tags:
+  - name: Health
+  - name: Organization
+  - name: Identity
+  - name: Channels
+  - name: Webhooks
+  - name: Customers
+  - name: Conversations
+  - name: Cases
+  - name: Assignments
+  - name: Escalations
+  - name: Internal Tasks
+  - name: Governance
+  - name: SLA
+  - name: Audit
+  - name: Reports
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      tags: [Health]
+      security: []
+      operationId: getHealth
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, timestamp]
+                properties:
+                  status: { type: string, const: ok }
+                  timestamp: { type: string, format: date-time }
+  /departments:
+    get:
+      tags: [Organization]
+      operationId: listDepartments
+      summary: List departments visible to the caller
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE, INACTIVE] }
+      responses:
+        '200':
+          description: Department list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DepartmentPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /teams:
+    get:
+      tags: [Organization]
+      operationId: listTeams
+      summary: List teams visible to the caller
+      parameters:
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Team list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TeamPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /users:
+    get:
+      tags: [Identity]
+      operationId: listUsers
+      summary: Search users available for assignment
+      parameters:
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: teamId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: skillId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: availability
+          in: query
+          schema: { type: string, enum: [AVAILABLE, BUSY, AWAY, OFFLINE] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /channels:
+    get:
+      tags: [Channels]
+      operationId: listChannels
+      summary: List LINE OA channels visible to the caller
+      parameters:
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE, INACTIVE, ERROR] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Channel list. Secrets are never returned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChannelPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Channels]
+      operationId: createChannel
+      summary: Register a LINE OA channel
+      description: Store secret references in a secret manager; never submit or return plaintext channel secrets through this API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChannelCreate' }
+      responses:
+        '201':
+          description: Channel created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Channel' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /channels/{channelId}:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+    get:
+      tags: [Channels]
+      operationId: getChannel
+      summary: Get channel configuration metadata
+      responses:
+        '200':
+          description: Channel details without credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Channel' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Channels]
+      operationId: updateChannel
+      summary: Update channel metadata or status
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/ChannelPatch' }
+      responses:
+        '200':
+          description: Channel updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Channel' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /webhooks/line/{channelId}:
+    parameters:
+      - $ref: '#/components/parameters/ChannelId'
+    post:
+      tags: [Webhooks]
+      security: []
+      operationId: receiveLineWebhook
+      summary: Receive LINE webhook events for a specific OA
+      description: |
+        Verify `x-line-signature` with the channel-specific secret and the exact
+        raw request body before parsing. Persist the webhook event durably and
+        return promptly; process asynchronously with idempotency, retry/backoff,
+        and dead-letter handling. This endpoint is unauthenticated at the
+        application bearer layer; signature verification is mandatory.
+      parameters:
+        - name: x-line-signature
+          in: header
+          required: true
+          schema: { type: string }
+          description: LINE signature for the exact raw request body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Provider event envelope. Preserve the raw body for signature verification.
+              additionalProperties: true
+      responses:
+        '202':
+          description: Webhook accepted for asynchronous processing
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted]
+                properties:
+                  accepted: { type: boolean, const: true }
+                  receivedAt: { type: string, format: date-time }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Invalid LINE signature
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /customers:
+    get:
+      tags: [Customers]
+      operationId: listCustomers
+      summary: Search customers within authorized channel scopes
+      parameters:
+        - name: channelId
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: query
+          in: query
+          schema: { type: string, minLength: 1, maxLength: 200 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Customer results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Customers]
+      operationId: createCustomer
+      summary: Create a customer identity scoped to one LINE OA
+      description: The unique identity key is channelId + lineUserId. Do not merge identities across channels.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerCreate' }
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /customers/{customerId}:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    get:
+      tags: [Customers]
+      operationId: getCustomer
+      summary: Get customer profile
+      responses:
+        '200':
+          description: Customer details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Customers]
+      operationId: updateCustomer
+      summary: Update customer profile attributes
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/CustomerPatch' }
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /conversations:
+    get:
+      tags: [Conversations]
+      operationId: listConversations
+      summary: List conversations in the caller's permitted scope
+      parameters:
+        - name: channelId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: status
+          in: query
+          schema: { type: string, enum: [OPEN, PENDING, CLOSED] }
+        - name: assignedTo
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: teamId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: search
+          in: query
+          schema: { type: string, maxLength: 200 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Conversation list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConversationPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /conversations/{conversationId}:
+    parameters:
+      - $ref: '#/components/parameters/ConversationId'
+    get:
+      tags: [Conversations]
+      operationId: getConversation
+      summary: Get conversation and channel binding
+      responses:
+        '200':
+          description: Conversation detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Conversation' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /conversations/{conversationId}/messages:
+    parameters:
+      - $ref: '#/components/parameters/ConversationId'
+    get:
+      tags: [Conversations]
+      operationId: listMessages
+      summary: List messages in a conversation
+      parameters:
+        - name: before
+          in: query
+          schema: { type: string, format: date-time }
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Message history
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessagePage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Conversations]
+      operationId: sendConversationMessage
+      summary: Send a customer-facing reply through the conversation's original LINE OA
+      description: |
+        The server resolves channelId from the persisted conversation. The
+        request intentionally has no channelId field. Reject attempts to
+        override the original channel. Persist outbound message and delivery
+        status; use an outbox/retry mechanism for reliable delivery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SendMessageRequest' }
+      responses:
+        '202':
+          description: Message accepted for delivery
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /cases:
+    get:
+      tags: [Cases]
+      operationId: listCases
+      summary: Search cases
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [NEW, TRIAGED, ASSIGNED, IN_PROGRESS, PENDING, ESCALATED, RESOLVED, CLOSED, REOPENED] }
+        - name: priority
+          in: query
+          schema: { type: string, enum: [LOW, NORMAL, HIGH, URGENT] }
+        - name: channelId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: teamId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: ownerId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: createdFrom
+          in: query
+          schema: { type: string, format: date-time }
+        - name: createdTo
+          in: query
+          schema: { type: string, format: date-time }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Case list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CasePage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Cases]
+      operationId: createCase
+      summary: Create a case from a conversation
+      description: Original channel and customer are derived from the conversation and are immutable after creation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CaseCreate' }
+      responses:
+        '201':
+          description: Case created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Case' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [Cases]
+      operationId: getCase
+      summary: Get case detail
+      responses:
+        '200':
+          description: Case detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Case' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Cases]
+      operationId: updateCase
+      summary: Update case fields and lifecycle state
+      description: originalChannelId and originalCustomerId are read-only and cannot be changed.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/CasePatch' }
+      responses:
+        '200':
+          description: Case updated
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Case' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '412': { description: Version conflict; refresh the case and retry. }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}/assignment-recommendations:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [Assignments]
+      operationId: getAssignmentRecommendations
+      summary: Recommend eligible PICs for a case
+      description: |
+        Baseline weighted score: Skill 35%, Workload 30%, Availability 20%,
+        Experience 15%. Scores are normalized to 0-100. Recommendation is
+        advisory; MVP requires a Manager/Supervisor confirmation or override.
+      responses:
+        '200':
+          description: Ranked PIC recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [caseId, algorithmVersion, recommendations]
+                properties:
+                  caseId: { $ref: '#/components/schemas/Uuid' }
+                  algorithmVersion: { type: string }
+                  recommendations:
+                    type: array
+                    items: { $ref: '#/components/schemas/AssignmentRecommendation' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}/assignments:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [Assignments]
+      operationId: listCaseAssignments
+      summary: List assignment history
+      responses:
+        '200':
+          description: Assignment history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/CaseAssignment' }
+    post:
+      tags: [Assignments]
+      operationId: assignCase
+      summary: Assign or reassign the primary PIC
+      description: Only one active PRIMARY_PIC assignment is permitted per case. Every change is recorded in assignment history.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignmentCreate' }
+      responses:
+        '201':
+          description: Assignment recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CaseAssignment' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}/escalations:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [Escalations]
+      operationId: listEscalations
+      summary: List internal escalations for a case
+      responses:
+        '200':
+          description: Escalation history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Escalation' }
+    post:
+      tags: [Escalations]
+      operationId: createEscalation
+      summary: Request an internal escalation
+      description: |
+        Escalation is strictly an internal workflow. It may route responsibility
+        to another department/team but must not create a new customer channel,
+        change the original LINE OA, or move the customer to another OA.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EscalationCreate' }
+      responses:
+        '201':
+          description: Escalation requested
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Escalation' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /escalations/{escalationId}:
+    parameters:
+      - $ref: '#/components/parameters/EscalationId'
+    get:
+      tags: [Escalations]
+      operationId: getEscalation
+      summary: Get escalation detail
+      responses:
+        '200':
+          description: Escalation detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Escalation' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Escalations]
+      operationId: updateEscalation
+      summary: Update internal escalation status or target handling team
+      description: Valid transitions include REQUESTED, UNDER_REVIEW, ACCEPTED, IN_PROGRESS, RESOLVED, REJECTED, CANCELLED.
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/EscalationPatch' }
+      responses:
+        '200':
+          description: Escalation updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Escalation' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}/internal-tasks:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [Internal Tasks]
+      operationId: listInternalTasks
+      summary: List internal tasks for a case
+      responses:
+        '200':
+          description: Internal task list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/InternalTask' }
+    post:
+      tags: [Internal Tasks]
+      operationId: createInternalTask
+      summary: Create an internal coordination task
+      description: Internal tasks do not send messages to the customer and do not change the conversation channel.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InternalTaskCreate' }
+      responses:
+        '201':
+          description: Internal task created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InternalTask' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /internal-tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Internal Tasks]
+      operationId: getInternalTask
+      summary: Get internal task
+      responses:
+        '200':
+          description: Task detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InternalTask' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Internal Tasks]
+      operationId: updateInternalTask
+      summary: Update internal task status or assignee
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema: { $ref: '#/components/schemas/InternalTaskPatch' }
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InternalTask' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /internal-tasks/{taskId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    post:
+      tags: [Internal Tasks]
+      operationId: addInternalTaskComment
+      summary: Add an internal-only task comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1, maxLength: 10000 }
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InternalComment' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /roles:
+    get:
+      tags: [Governance]
+      operationId: listRoles
+      summary: List roles
+      responses:
+        '200':
+          description: Role catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Role' }
+  /permissions:
+    get:
+      tags: [Governance]
+      operationId: listPermissions
+      summary: List permission catalog
+      responses:
+        '200':
+          description: Permission catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Permission' }
+  /users/{userId}/scopes:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Governance]
+      operationId: listUserScopes
+      summary: List user's authorization scopes
+      responses:
+        '200':
+          description: User scopes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/UserScope' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [Governance]
+      operationId: replaceUserScopes
+      summary: Replace user's authorization scopes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items: { $ref: '#/components/schemas/UserScopeInput' }
+      responses:
+        '200':
+          description: Scopes replaced
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/UserScope' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /cases/{caseId}/sla:
+    parameters:
+      - $ref: '#/components/parameters/CaseId'
+    get:
+      tags: [SLA]
+      operationId: getCaseSla
+      summary: Get SLA status for a case
+      responses:
+        '200':
+          description: SLA status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CaseSla' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /audit-logs:
+    get:
+      tags: [Audit]
+      operationId: listAuditLogs
+      summary: Search audit events
+      description: Requires explicit audit permission. Audit access itself should be logged.
+      parameters:
+        - name: actorId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: resourceType
+          in: query
+          schema: { type: string }
+        - name: resourceId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Audit log page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditLogPage' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /reports/operational-summary:
+    get:
+      tags: [Reports]
+      operationId: getOperationalSummary
+      summary: Get operational summary within authorized scope
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: departmentId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+        - name: channelId
+          in: query
+          schema: { $ref: '#/components/schemas/Uuid' }
+      responses:
+        '200':
+          description: Operational metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [period, totals]
+                properties:
+                  period:
+                    type: object
+                    properties:
+                      from: { type: string, format: date }
+                      to: { type: string, format: date }
+                  totals:
+                    type: object
+                    properties:
+                      conversations: { type: integer, minimum: 0 }
+                      openCases: { type: integer, minimum: 0 }
+                      resolvedCases: { type: integer, minimum: 0 }
+                      overdueCases: { type: integer, minimum: 0 }
+                      escalations: { type: integer, minimum: 0 }
+                      averageFirstResponseSeconds: { type: number, minimum: 0 }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OIDC/SSO-issued access token. Validate issuer, audience, expiry, and scopes.
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      schema: { type: string }
+      description: Optional ETag/version precondition for optimistic concurrency.
+    ChannelId:
+      name: channelId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    CaseId:
+      name: caseId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    EscalationId:
+      name: escalationId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Uuid' }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Authenticated but not authorized for this action/resource
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found or not visible in caller's scope
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Conflict with current resource state or uniqueness constraint
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    PageMeta:
+      type: object
+      required: [page, pageSize, totalItems, totalPages]
+      properties:
+        page: { type: integer, minimum: 1 }
+        pageSize: { type: integer, minimum: 1 }
+        totalItems: { type: integer, minimum: 0 }
+        totalPages: { type: integer, minimum: 0 }
+    Error:
+      type: object
+      required: [code, message, traceId]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        traceId: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              issue: { type: string }
+    Department:
+      type: object
+      required: [id, code, name, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+    Team:
+      type: object
+      required: [id, departmentId, code, name, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        departmentId: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+    User:
+      type: object
+      required: [id, displayName, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        employeeCode: { type: string }
+        displayName: { type: string }
+        email: { type: string, format: email }
+        status: { type: string, enum: [ACTIVE, INACTIVE, LOCKED] }
+        availability: { type: string, enum: [AVAILABLE, BUSY, AWAY, OFFLINE] }
+        departmentIds:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+        teamIds:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+        skillIds:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+    Channel:
+      type: object
+      required: [id, departmentId, name, provider, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        departmentId: { $ref: '#/components/schemas/Uuid' }
+        name: { type: string }
+        provider: { type: string, const: LINE }
+        lineBasicId: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE, ERROR] }
+        credentialReferenceConfigured: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ChannelCreate:
+      type: object
+      required: [departmentId, name, provider, secretReference]
+      properties:
+        departmentId: { $ref: '#/components/schemas/Uuid' }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        provider: { type: string, const: LINE }
+        lineBasicId: { type: string }
+        secretReference:
+          type: string
+          description: Reference/key name in an external secret manager; not the secret itself.
+    ChannelPatch:
+      type: object
+      properties:
+        departmentId: { $ref: '#/components/schemas/Uuid' }
+        name: { type: string, maxLength: 120 }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+    Customer:
+      type: object
+      required: [id, channelId, lineUserId, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        channelId: { $ref: '#/components/schemas/Uuid' }
+        lineUserId: { type: string }
+        displayName: { type: string }
+        pictureUrl: { type: string, format: uri }
+        phone: { type: string }
+        email: { type: string, format: email }
+        profileAttributes: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CustomerCreate:
+      type: object
+      required: [channelId, lineUserId]
+      properties:
+        channelId: { $ref: '#/components/schemas/Uuid' }
+        lineUserId: { type: string, minLength: 1 }
+        displayName: { type: string }
+        pictureUrl: { type: string, format: uri }
+        phone: { type: string }
+        email: { type: string, format: email }
+        profileAttributes: { type: object, additionalProperties: true }
+    CustomerPatch:
+      type: object
+      properties:
+        displayName: { type: string }
+        pictureUrl: { type: [string, 'null'], format: uri }
+        phone: { type: [string, 'null'] }
+        email: { type: [string, 'null'], format: email }
+        profileAttributes: { type: object, additionalProperties: true }
+    Conversation:
+      type: object
+      required: [id, channelId, customerId, status, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        channelId: { $ref: '#/components/schemas/Uuid' }
+        customerId: { $ref: '#/components/schemas/Uuid' }
+        status: { type: string, enum: [OPEN, PENDING, CLOSED] }
+        assignedUserId: { $ref: '#/components/schemas/Uuid' }
+        departmentId: { $ref: '#/components/schemas/Uuid' }
+        teamId: { $ref: '#/components/schemas/Uuid' }
+        lastMessageAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time }
+    Message:
+      type: object
+      required: [id, conversationId, direction, messageType, deliveryStatus, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        conversationId: { $ref: '#/components/schemas/Uuid' }
+        direction: { type: string, enum: [INBOUND, OUTBOUND] }
+        messageType: { type: string, enum: [TEXT, IMAGE, VIDEO, AUDIO, FILE, STICKER, LOCATION, TEMPLATE, OTHER] }
+        text: { type: string }
+        payload: { type: object, additionalProperties: true }
+        deliveryStatus: { type: string, enum: [RECEIVED, QUEUED, SENT, DELIVERED, FAILED, READ, UNKNOWN] }
+        providerMessageId: { type: string }
+        createdAt: { type: string, format: date-time }
+        sentAt: { type: string, format: date-time }
+    SendMessageRequest:
+      type: object
+      required: [messageType]
+      properties:
+        messageType: { type: string, enum: [TEXT, IMAGE, VIDEO, AUDIO, FILE, STICKER, TEMPLATE] }
+        text: { type: string, maxLength: 5000 }
+        attachmentIds:
+          type: array
+          items: { $ref: '#/components/schemas/Uuid' }
+        templatePayload: { type: object, additionalProperties: true }
+        clientRequestId:
+          type: string
+          description: Client-generated idempotency key for retry-safe message submission.
+      oneOf:
+        - required: [text]
+        - required: [attachmentIds]
+        - required: [templatePayload]
+    Case:
+      type: object
+      required: [id, conversationId, originalChannelId, originalCustomerId, status, priority, version, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        caseNumber: { type: string }
+        conversationId: { $ref: '#/components/schemas/Uuid' }
+        originalChannelId:
+          allOf: [{ $ref: '#/components/schemas/Uuid' }]
+          readOnly: true
+        originalCustomerId:
+          allOf: [{ $ref: '#/components/schemas/Uuid' }]
+          readOnly: true
+        originalOwnerId: { $ref: '#/components/schemas/Uuid' }
+        currentDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        currentTeamId: { $ref: '#/components/schemas/Uuid' }
+        currentOwnerId: { $ref: '#/components/schemas/Uuid' }
+        title: { type: string }
+        description: { type: string }
+        category: { type: string }
+        status: { type: string, enum: [NEW, TRIAGED, ASSIGNED, IN_PROGRESS, PENDING, ESCALATED, RESOLVED, CLOSED, REOPENED] }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH, URGENT] }
+        version: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time }
+    CaseCreate:
+      type: object
+      required: [conversationId, title]
+      properties:
+        conversationId: { $ref: '#/components/schemas/Uuid' }
+        title: { type: string, minLength: 1, maxLength: 250 }
+        description: { type: string, maxLength: 20000 }
+        category: { type: string }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH, URGENT], default: NORMAL }
+    CasePatch:
+      type: object
+      properties:
+        title: { type: string, maxLength: 250 }
+        description: { type: string, maxLength: 20000 }
+        category: { type: string }
+        status: { type: string, enum: [NEW, TRIAGED, ASSIGNED, IN_PROGRESS, PENDING, ESCALATED, RESOLVED, CLOSED, REOPENED] }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH, URGENT] }
+        currentDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        currentTeamId: { $ref: '#/components/schemas/Uuid' }
+    AssignmentRecommendation:
+      type: object
+      required: [user, totalScore, scoreBreakdown]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        totalScore: { type: number, minimum: 0, maximum: 100 }
+        scoreBreakdown:
+          type: object
+          properties:
+            skill: { type: number, minimum: 0, maximum: 100 }
+            workload: { type: number, minimum: 0, maximum: 100 }
+            availability: { type: number, minimum: 0, maximum: 100 }
+            experience: { type: number, minimum: 0, maximum: 100 }
+        rationale: { type: array, items: { type: string } }
+    CaseAssignment:
+      type: object
+      required: [id, caseId, userId, assignmentType, assignedAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        caseId: { $ref: '#/components/schemas/Uuid' }
+        userId: { $ref: '#/components/schemas/Uuid' }
+        assignmentType: { type: string, enum: [PRIMARY_PIC, SUPPORT, OBSERVER] }
+        assignedBy: { $ref: '#/components/schemas/Uuid' }
+        reason: { type: string }
+        isActive: { type: boolean }
+        assignedAt: { type: string, format: date-time }
+        endedAt: { type: string, format: date-time }
+    AssignmentCreate:
+      type: object
+      required: [userId, assignmentType]
+      properties:
+        userId: { $ref: '#/components/schemas/Uuid' }
+        assignmentType: { type: string, enum: [PRIMARY_PIC, SUPPORT, OBSERVER] }
+        reason: { type: string, maxLength: 1000 }
+        recommendationId: { type: string }
+        managerConfirmed: { type: boolean, default: false }
+    Escalation:
+      type: object
+      required: [id, caseId, status, requestedBy, requestedAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        caseId: { $ref: '#/components/schemas/Uuid' }
+        fromDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        fromTeamId: { $ref: '#/components/schemas/Uuid' }
+        toDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        toTeamId: { $ref: '#/components/schemas/Uuid' }
+        requestedBy: { $ref: '#/components/schemas/Uuid' }
+        reviewedBy: { $ref: '#/components/schemas/Uuid' }
+        status: { type: string, enum: [REQUESTED, UNDER_REVIEW, ACCEPTED, IN_PROGRESS, RESOLVED, REJECTED, CANCELLED] }
+        reason: { type: string }
+        resolutionNote: { type: string }
+        requestedAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time }
+    EscalationCreate:
+      type: object
+      required: [toDepartmentId, reason]
+      properties:
+        toDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        toTeamId: { $ref: '#/components/schemas/Uuid' }
+        reason: { type: string, minLength: 1, maxLength: 5000 }
+        requestedOwnerId: { $ref: '#/components/schemas/Uuid' }
+        createInternalTask: { type: boolean, default: true }
+    EscalationPatch:
+      type: object
+      properties:
+        status: { type: string, enum: [UNDER_REVIEW, ACCEPTED, IN_PROGRESS, RESOLVED, REJECTED, CANCELLED] }
+        toDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        toTeamId: { $ref: '#/components/schemas/Uuid' }
+        resolutionNote: { type: string, maxLength: 5000 }
+    InternalTask:
+      type: object
+      required: [id, caseId, title, status, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        caseId: { $ref: '#/components/schemas/Uuid' }
+        escalationId: { $ref: '#/components/schemas/Uuid' }
+        title: { type: string }
+        description: { type: string }
+        assignedDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        assignedTeamId: { $ref: '#/components/schemas/Uuid' }
+        assignedUserId: { $ref: '#/components/schemas/Uuid' }
+        status: { type: string, enum: [OPEN, IN_PROGRESS, BLOCKED, DONE, CANCELLED] }
+        dueAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+    InternalTaskCreate:
+      type: object
+      required: [title]
+      properties:
+        escalationId: { $ref: '#/components/schemas/Uuid' }
+        title: { type: string, minLength: 1, maxLength: 250 }
+        description: { type: string, maxLength: 10000 }
+        assignedDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        assignedTeamId: { $ref: '#/components/schemas/Uuid' }
+        assignedUserId: { $ref: '#/components/schemas/Uuid' }
+        dueAt: { type: string, format: date-time }
+    InternalTaskPatch:
+      type: object
+      properties:
+        title: { type: string, maxLength: 250 }
+        description: { type: string, maxLength: 10000 }
+        assignedDepartmentId: { $ref: '#/components/schemas/Uuid' }
+        assignedTeamId: { $ref: '#/components/schemas/Uuid' }
+        assignedUserId: { $ref: '#/components/schemas/Uuid' }
+        status: { type: string, enum: [OPEN, IN_PROGRESS, BLOCKED, DONE, CANCELLED] }
+        dueAt: { type: [string, 'null'], format: date-time }
+    InternalComment:
+      type: object
+      required: [id, taskId, body, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        taskId: { $ref: '#/components/schemas/Uuid' }
+        authorId: { $ref: '#/components/schemas/Uuid' }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+    Role:
+      type: object
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string, enum: [SUPER_ADMIN, SYSTEM_ADMIN, DEPARTMENT_ADMIN, MANAGER, SUPERVISOR, PIC_AGENT, AUDITOR] }
+        name: { type: string }
+        description: { type: string }
+    Permission:
+      type: object
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        code: { type: string }
+        description: { type: string }
+        resource: { type: string }
+        action: { type: string }
+    UserScope:
+      allOf:
+        - $ref: '#/components/schemas/UserScopeInput'
+        - type: object
+          properties:
+            id: { $ref: '#/components/schemas/Uuid' }
+            userId: { $ref: '#/components/schemas/Uuid' }
+    UserScopeInput:
+      type: object
+      required: [scopeType, scopeId]
+      properties:
+        scopeType: { type: string, enum: [DEPARTMENT, TEAM, CHANNEL, ASSIGNED_RESOURCE] }
+        scopeId: { $ref: '#/components/schemas/Uuid' }
+        accessLevel: { type: string, enum: [READ, WRITE, MANAGE] }
+    CaseSla:
+      type: object
+      properties:
+        caseId: { $ref: '#/components/schemas/Uuid' }
+        policyId: { $ref: '#/components/schemas/Uuid' }
+        firstResponseDueAt: { type: string, format: date-time }
+        resolutionDueAt: { type: string, format: date-time }
+        firstResponseBreached: { type: boolean }
+        resolutionBreached: { type: boolean }
+        paused: { type: boolean }
+        remainingResolutionSeconds: { type: integer }
+    AuditLog:
+      type: object
+      required: [id, action, resourceType, occurredAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        actorId: { $ref: '#/components/schemas/Uuid' }
+        action: { type: string }
+        resourceType: { type: string }
+        resourceId: { $ref: '#/components/schemas/Uuid' }
+        outcome: { type: string, enum: [SUCCESS, DENIED, FAILURE] }
+        metadata: { type: object, additionalProperties: true }
+        occurredAt: { type: string, format: date-time }
+    DepartmentPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Department' } } } }]
+    TeamPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Team' } } } }]
+    UserPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/User' } } } }]
+    ChannelPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Channel' } } } }]
+    CustomerPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Customer' } } } }]
+    ConversationPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Conversation' } } } }]
+    MessagePage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Message' } } } }]
+    CasePage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Case' } } } }]
+    AuditLogPage:
+      allOf: [{ $ref: '#/components/schemas/PageMeta' }, { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/AuditLog' } } } }]
