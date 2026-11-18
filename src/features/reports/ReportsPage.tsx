@@ -8,7 +8,7 @@ import { isCaseOpen, isEscalationActive, isTaskOpen } from '../../utils/transiti
 import { formatDuration, ms } from '../../utils/time';
 import { computeSla } from '../../utils/sla';
 import { ESCALATION_STATUSES } from '../../types/domain';
-import { Card, Restricted } from '../../components/common/ui';
+import { Card, Restricted, UserChip } from '../../components/common/ui';
 import { DemoTag, EscalationChip } from '../../components/common/Chip';
 import { BarList } from './BarList';
 import { RANGE_LABEL, rangeStart, scoped, slaCounts, type RangeKey } from './metrics';
@@ -81,7 +81,7 @@ export function ReportsPage() {
                 const tasks = S.tasks.filter((t) => t.assignedUserId === u.id && isTaskOpen(t.status)).length;
                 return (
                   <tr key={u.id}>
-                    <td>{u.name}</td>
+                    <td><UserChip userId={u.id} name={u.name} /></td>
                     <td>{L.depName(u.departmentId)}<div className="muted small">{L.teamName(u.teamId)}</div></td>
                     <td>{AVAILABILITY_LABEL[u.availability]}</td>
                     <td>{owned}</td>

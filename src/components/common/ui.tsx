@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Lock } from 'lucide-react';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -76,16 +76,46 @@ export function Field({ label, htmlFor, required, error, hint, children }: { lab
   );
 }
 
-export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
+/**
+ * Staff photo when `userId` is given (public/avatars/<userId>.webp), otherwise initials.
+ * Customers never get a photo. A missing file falls back to initials.
+ */
+export function Avatar({ name, size = 28, userId }: { name: string; size?: number; userId?: string | null }) {
+  const [broken, setBroken] = useState(false);
   const initials = name
     .split(' ')
     .map((p) => p[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
+  if (userId && !broken) {
+    return (
+      <img
+        className="avatar avatar-photo"
+        src={`/avatars/${userId}.webp`}
+        width={size}
+        height={size}
+        style={{ width: size, height: size }}
+        alt=""
+        loading="lazy"
+        onError={() => setBroken(true)}
+      />
+    );
+  }
   return (
     <span className="avatar" style={{ width: size, height: size, fontSize: size * 0.4 }} aria-hidden="true">
       {initials}
+    </span>
+  );
+}
+
+/** Small staff photo + name, used wherever an owner, PIC or requester is listed. */
+export function UserChip({ userId, name, size = 22 }: { userId: string | null | undefined; name: string; size?: number }) {
+  if (!userId) return <span className="muted">{name || '—'}</span>;
+  return (
+    <span className="user-chip">
+      <Avatar name={name} size={size} userId={userId} />
+      <span>{name}</span>
     </span>
   );
 }

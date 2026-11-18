@@ -19,7 +19,7 @@ import { POLICY_STATUS_LABEL, POLICY_TONE } from '../../utils/labels';
 import { isCaseOpen } from '../../utils/transitions';
 import { formatDateTime, ms } from '../../utils/time';
 import { DATA_CATEGORIES, type ConsentPurpose, type Customer, type CustomFieldDefinition, type CustomFieldValue } from '../../types/domain';
-import { Avatar, Button, Card, EmptyState, Field, KeyValue, Restricted } from '../../components/common/ui';
+import { Avatar, Button, Card, EmptyState, Field, KeyValue, Restricted, UserChip } from '../../components/common/ui';
 import { CaseStatusChip, Chip, DemoTag } from '../../components/common/Chip';
 import { ConfirmDialog, Modal } from '../../components/overlays/Modal';
 import { ChannelBadge } from '../channels/ChannelBadge';
@@ -118,7 +118,7 @@ function OverviewTab({ customer: c }: { customer: Customer }) {
         actions={canAssignCustomerOwner(data, me, c) && <Button size="sm" onClick={() => setOwnerOpen(true)}>{c.ownerUserId ? 'เปลี่ยน' : 'มอบหมาย'}</Button>}
       >
         {c.ownerUserId ? (
-          <div className="inline"><Avatar name={L.userName(c.ownerUserId)} size={28} /> <strong>{L.userName(c.ownerUserId)}</strong> <span className="muted small">{L.teamName(L.user(c.ownerUserId)?.teamId)}</span></div>
+          <div className="inline"><Avatar name={L.userName(c.ownerUserId)} size={40} userId={c.ownerUserId} /> <strong>{L.userName(c.ownerUserId)}</strong> <span className="muted small">{L.teamName(L.user(c.ownerUserId)?.teamId)}</span></div>
         ) : (
           <p className="muted">ยังไม่มีผู้ดูแลหลัก</p>
         )}
@@ -300,7 +300,7 @@ function C360Tab({ customer: c }: { customer: Customer }) {
                     items={[
                       ['LINE User ID', show('IDENTITY') ? <span key="i" className="mono">{v.customer.lineUserId}</span> : <OutOfScope key="i" />],
                       ['โทรศัพท์', show('CONTACT') ? <PiiValue key="p" customer={v.customer} field="phone" value={v.customer.phone} kind="phone" /> : <OutOfScope key="p" />],
-                      ['ผู้ดูแลหลัก', L.userName(v.customer.ownerUserId)],
+                      ['ผู้ดูแลหลัก', v.customer.ownerUserId ? <UserChip key="ow" userId={v.customer.ownerUserId} name={L.userName(v.customer.ownerUserId)} /> : '—'],
                       ['กรมธรรม์', show('POLICY') ? (pols.length ? pols.map((p) => `${p.product} (${POLICY_STATUS_LABEL[p.status]})`).join(', ') : 'ไม่มี') : <OutOfScope key="po" />],
                       ['Case / เคลม', show('CLAIM_DETAIL') || show('CONVERSATION') ? `${cases.length} Case (เปิด ${cases.filter((k) => isCaseOpen(k.status)).length})` : <OutOfScope key="ca" />],
                       ['บทสนทนา', show('CONVERSATION') ? `${conv.length} บทสนทนา${conv[0] ? ` · ล่าสุด ${formatDateTime(conv[0].lastMessageAt)}` : ''}` : <OutOfScope key="cv" />],
@@ -574,7 +574,7 @@ function NotesTab({ customer: c }: { customer: Customer }) {
         {notes.length === 0 && <li className="muted small">ยังไม่มีบันทึก</li>}
         {notes.map((n) => (
           <li key={n.id} className="comment">
-            <Avatar name={L.userName(n.authorId)} size={24} />
+            <Avatar name={L.userName(n.authorId)} size={24} userId={n.authorId} />
             <div>
               <p className="small"><strong>{L.userName(n.authorId)}</strong> <span className="muted">{formatDateTime(n.createdAt)}</span> {n.pinned && <Chip tone="amber"><Pin size={10} aria-hidden="true" /> ปักหมุด</Chip>}</p>
               <p>{n.body}</p>

@@ -102,7 +102,7 @@ export function AppShell() {
         </nav>
         <div className="sidebar-foot">
           <div className="me">
-            <Avatar name={me.name} size={32} />
+            <Avatar name={me.name} size={32} userId={me.id} />
             <div className="me-text">
               <strong>{me.name}</strong>
               <small>{ROLE_LABEL[me.role]}</small>

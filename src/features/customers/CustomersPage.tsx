@@ -8,7 +8,7 @@ import { canDecideLink, canSeeCustomer } from '../../utils/permissions';
 import { hasPurpose } from '../../utils/consent';
 import { matchesAll } from '../../utils/segments';
 import { isCaseOpen } from '../../utils/transitions';
-import { Card, EmptyState } from '../../components/common/ui';
+import { Card, EmptyState, UserChip } from '../../components/common/ui';
 import { Chip } from '../../components/common/Chip';
 import { ChannelBadge } from '../channels/ChannelBadge';
 import { ConsentBadge, nearestExpiryDays } from './shared';
@@ -115,7 +115,7 @@ function CustomerList() {
                   <tr key={c.id}>
                     <td><Link to={`/customers/${c.id}`} className="link">{c.displayName}</Link><div className="muted small mono">{c.lineUserId}</div></td>
                     <td><ChannelBadge channelId={c.channelId} small /></td>
-                    <td>{c.ownerUserId ? L.userName(c.ownerUserId) : <span className="muted">—</span>}</td>
+                    <td>{c.ownerUserId ? <UserChip userId={c.ownerUserId} name={L.userName(c.ownerUserId)} /> : <span className="muted">—</span>}</td>
                     <td><span className="tags">{c.tags.map((t) => <Chip key={t} tone="gray">{t}</Chip>)}</span></td>
                     <td>{open || <span className="muted">0</span>}</td>
                     <td className="small">{active ? `${active} ฉบับ` : <span className="muted">ไม่มี</span>}{days !== null && days <= 30 && <div><Chip tone="amber">หมดใน {days} วัน</Chip></div>}</td>

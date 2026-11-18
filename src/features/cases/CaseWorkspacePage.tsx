@@ -189,7 +189,7 @@ function Overview({ caseId, onTab }: { caseId: string; onTab: (t: Tab) => void }
           items={[
             ['แผนก', L.depName(c.currentDepartmentId)],
             ['ทีม', L.teamName(c.currentTeamId)],
-            ['PIC', c.currentOwnerId ? <span key="o" className="inline"><Avatar name={L.userName(c.currentOwnerId)} size={22} /> {L.userName(c.currentOwnerId)}</span> : <span className="muted">ยังไม่มอบหมาย</span>],
+            ['PIC', c.currentOwnerId ? <span key="o" className="inline"><Avatar name={L.userName(c.currentOwnerId)} size={22} userId={c.currentOwnerId} /> {L.userName(c.currentOwnerId)}</span> : <span className="muted">ยังไม่มอบหมาย</span>],
             ['หัวข้อ', <span key="tp">{c.category}{topic ? ` · รับเรื่อง: ${L.depName(topic.responsibleDepartmentId)}` : ''}</span>],
             ['เห็น log', topic?.observerDepartmentIds.length ? topic.observerDepartmentIds.map((d) => L.depName(d)).join(', ') : <span key="nl" className="muted">—</span>],
             ['ผู้ติดตาม', observers.length ? observers.map((a) => L.userName(a.userId)).join(', ') : <span key="no" className="muted">—</span>],
@@ -241,7 +241,7 @@ function AssignmentTab({ caseId }: { caseId: string }) {
             <tbody>
               {hist.map((a) => (
                 <tr key={a.id}>
-                  <td><span className="inline"><Avatar name={L.userName(a.userId)} size={22} /> {L.userName(a.userId)}</span></td>
+                  <td><span className="inline"><Avatar name={L.userName(a.userId)} size={22} userId={a.userId} /> {L.userName(a.userId)}</span></td>
                   <td>{a.assignmentType}</td>
                   <td>{a.isActive ? <Chip tone="green">ปัจจุบัน</Chip> : <Chip tone="gray">สิ้นสุด {a.unassignedAt ? formatDateTime(a.unassignedAt) : ''}</Chip>}</td>
                   <td className="nowrap">{formatDateTime(a.assignedAt)}</td>

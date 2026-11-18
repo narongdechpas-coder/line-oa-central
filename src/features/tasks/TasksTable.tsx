@@ -6,7 +6,7 @@ import { useLookups } from '../../store/hooks';
 import { isTaskOpen } from '../../utils/transitions';
 import { formatDateTime, ms } from '../../utils/time';
 import type { InternalTask } from '../../types/domain';
-import { EmptyState } from '../../components/common/ui';
+import { EmptyState, UserChip } from '../../components/common/ui';
 import { Chip, TaskChip } from '../../components/common/Chip';
 import { TaskDrawer } from './TaskDrawer';
 
@@ -44,7 +44,7 @@ export function TasksTable({ tasks, hideCase }: { tasks: InternalTask[]; hideCas
                   </td>
                   {!hideCase && <td>{c && <Link to={`/cases/${c.id}?tab=tasks`} className="mono link">{c.caseNumber}</Link>}</td>}
                   <td>{L.depName(t.assignedDepartmentId)}<div className="muted small">{L.teamName(t.assignedTeamId)}</div></td>
-                  <td>{L.userName(t.assignedUserId)}</td>
+                  <td><UserChip userId={t.assignedUserId} name={L.userName(t.assignedUserId)} /></td>
                   <td className="nowrap">{formatDateTime(t.dueAt)} {overdue && <Chip tone="red">เลยกำหนด</Chip>}</td>
                   <td><TaskChip status={t.status} /></td>
                 </tr>

@@ -8,7 +8,7 @@ import { can, canReplyConversation, canSeeCase, canSeeConversation, canSeeCustom
 import { CONVERSATION_STATUS_LABEL } from '../../utils/labels';
 import { formatDateTime, formatTime } from '../../utils/time';
 import { CONVERSATION_STATUSES } from '../../types/domain';
-import { Avatar, Button, EmptyState, KeyValue, Restricted } from '../../components/common/ui';
+import { Avatar, Button, EmptyState, KeyValue, Restricted, UserChip } from '../../components/common/ui';
 import { CaseStatusChip, Chip, DemoTag } from '../../components/common/Chip';
 import { ChannelBadge } from '../channels/ChannelBadge';
 import { CreateCaseModal } from './CreateCaseModal';
@@ -259,7 +259,7 @@ function CustomerPanel({ conversationId, onCreated }: { conversationId: string; 
           ['LINE OA', <ChannelBadge key="c" channelId={conv.conversation.channelId} />],
           ['LINE User ID', <span key="u" className="mono">{cus?.lineUserId} <DemoTag>MOCK</DemoTag></span>],
           ['โทรศัพท์', cus ? <PiiValue key="p" customer={cus} field="phone" value={cus.phone} kind="phone" /> : '—'],
-          ['ผู้ดูแลหลัก', cus?.ownerUserId ? L.userName(cus.ownerUserId) : <span key="o" className="muted">ยังไม่มี</span>],
+          ['ผู้ดูแลหลัก', cus?.ownerUserId ? <UserChip key="ow" userId={cus.ownerUserId} name={L.userName(cus.ownerUserId)} size={26} /> : <span key="o" className="muted">ยังไม่มี</span>],
           ['Consent', cus ? <ConsentBadge key="cs" customerId={cus.id} /> : '—'],
           ['แท็ก', <span key="t" className="tags">{cus?.tags.map((t) => <Chip key={t} tone="gray">{t}</Chip>)}</span>],
         ]}

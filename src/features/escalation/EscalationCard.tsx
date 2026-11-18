@@ -6,7 +6,7 @@ import { report, useLookups } from '../../store/hooks';
 import { canCancelEscalation, canDecideEscalation, canWorkEscalation, canWorkOnCase } from '../../utils/permissions';
 import { allowedEscalationActions, isEscalationActive, isTaskOpen, type EscalationAction } from '../../utils/transitions';
 import { formatDateTime } from '../../utils/time';
-import { Button, Field } from '../../components/common/ui';
+import { Button, Field, UserChip } from '../../components/common/ui';
 import { EscalationChip, TaskChip } from '../../components/common/Chip';
 import { ConfirmDialog } from '../../components/overlays/Modal';
 import { ChannelBadge } from '../channels/ChannelBadge';
@@ -67,14 +67,14 @@ export function EscalationCard({ escalationId, showCase, showHistory }: { escala
       )}
       <p className="esc-reason">{e.reason}</p>
       <dl className="esc-meta">
-        <div><dt>ขอโดย</dt><dd>{L.userName(e.requestedBy)} · {formatDateTime(e.createdAt)}</dd></div>
-        <div><dt>ผู้รับผิดชอบที่ขอ</dt><dd>{e.requestedOwnerId ? L.userName(e.requestedOwnerId) : '—'}</dd></div>
+        <div><dt>ขอโดย</dt><dd><UserChip userId={e.requestedBy} name={L.userName(e.requestedBy)} /> <span className="muted">· {formatDateTime(e.createdAt)}</span></dd></div>
+        <div><dt>ผู้รับผิดชอบที่ขอ</dt><dd>{e.requestedOwnerId ? <UserChip userId={e.requestedOwnerId} name={L.userName(e.requestedOwnerId)} /> : '—'}</dd></div>
         <div><dt>งานภายใน</dt><dd>{tasks.length ? `${tasks.length} งาน (ค้าง ${openTasks})` : 'ยังไม่มี'}</dd></div>
         {e.decisionNote && <div><dt>หมายเหตุการตัดสินใจ</dt><dd>{e.decisionNote}</dd></div>}
       </dl>
       {tasks.length > 0 && (
         <ul className="esc-tasks">
-          {tasks.map((t) => <li key={t.id}><TaskChip status={t.status} /> {t.title} <span className="muted small">— {L.userName(t.assignedUserId)}</span></li>)}
+          {tasks.map((t) => <li key={t.id}><TaskChip status={t.status} /> {t.title} <span className="small">— <UserChip userId={t.assignedUserId} name={L.userName(t.assignedUserId)} size={18} /></span></li>)}
         </ul>
       )}
       {(actions.length > 0 || canAddTask) && (
