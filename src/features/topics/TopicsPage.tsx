@@ -146,7 +146,7 @@ function TopicModal({ topic, defaultDep, onClose }: { topic: Topic | null; defau
             <ol className="pic-sort" aria-label="ลำดับ PIC">
               {pics.map((id, i) => (
                 <li key={id}>
-                  <span className="inline"><Avatar name={L.userName(id)} size={22} /> {i + 1}. {L.userName(id)}</span>
+                  <span className="inline"><Avatar name={L.userName(id)} size={22} userId={id} /> {i + 1}. {L.userName(id)}</span>
                   <span className="btn-row">
                     <button type="button" className="icon-btn" aria-label={`เลื่อน ${L.userName(id)} ขึ้น`} disabled={i === 0} onClick={() => move(i, -1)}><ArrowUp size={14} /></button>
                     <button type="button" className="icon-btn" aria-label={`เลื่อน ${L.userName(id)} ลง`} disabled={i === pics.length - 1} onClick={() => move(i, 1)}><ArrowDown size={14} /></button>

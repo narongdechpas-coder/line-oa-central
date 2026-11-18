@@ -6,7 +6,7 @@ import { canDecideLink, canUnlink } from '../../utils/permissions';
 import { LINK_STATUS_LABEL, LINK_TONE } from '../../utils/labels';
 import { formatDateTime } from '../../utils/time';
 import type { ProfileLink } from '../../types/domain';
-import { Button, EmptyState, Field } from '../../components/common/ui';
+import { Button, EmptyState, Field, UserChip } from '../../components/common/ui';
 import { Chip } from '../../components/common/Chip';
 import { ConfirmDialog } from '../../components/overlays/Modal';
 import { ConsentBadge, CustomerLink } from './shared';
@@ -49,8 +49,8 @@ export function LinksTable({ links, emptyHint }: { links: ProfileLink[]; emptyHi
                   <td><CustomerLink customerId={l.customerBId} /><div><ConsentBadge customerId={l.customerBId} /></div></td>
                   <td><Chip tone={LINK_TONE[l.status]} title={l.status}>{LINK_STATUS_LABEL[l.status]}</Chip></td>
                   <td className="small">{l.reason}{l.endReason && <div className="muted">{l.endReason}</div>}{l.decisionNote && <div className="muted">หมายเหตุ: {l.decisionNote}</div>}</td>
-                  <td className="small">{L.userName(l.requestedBy)}<div className="muted">{formatDateTime(l.requestedAt)}</div></td>
-                  <td className="small">{l.decidedBy ? <>{L.userName(l.decidedBy)}<div className="muted">{l.decidedAt && formatDateTime(l.decidedAt)}</div></> : '—'}</td>
+                  <td className="small">{<UserChip userId={l.requestedBy} name={L.userName(l.requestedBy)} size={20} />}<div className="muted">{formatDateTime(l.requestedAt)}</div></td>
+                  <td className="small">{l.decidedBy ? <><UserChip userId={l.decidedBy} name={L.userName(l.decidedBy)} size={20} /><div className="muted">{l.decidedAt && formatDateTime(l.decidedAt)}</div></> : '—'}</td>
                   <td>
                     <div className="btn-row">
                       {l.status === 'REQUESTED' && (

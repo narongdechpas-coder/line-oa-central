@@ -131,7 +131,7 @@ export function CreateCaseModal({ conversationId, onClose, onCreated }: { conver
               <div className="pic-group">
                 <p className="pic-group-title">ผู้ดูแลหลักของลูกค้า · {L.depName(L.user(ranking.ownerOutsideList)?.departmentId)}</p>
                 <div className="cand compact is-current">
-                  <Avatar name={L.userName(ranking.ownerOutsideList)} size={28} />
+                  <Avatar name={L.userName(ranking.ownerOutsideList)} size={32} userId={ranking.ownerOutsideList} />
                   <div className="cand-who">
                     <strong>{L.userName(ranking.ownerOutsideList)}</strong> <Chip tone="purple">ผู้ดูแลหลัก</Chip>
                     <div className="muted small">ไม่อยู่ในรายชื่อ PIC ของหัวข้อนี้ → จะติดตาม Case ในฐานะผู้ติดตาม (OBSERVER) ไม่ได้รับงาน</div>
@@ -147,7 +147,7 @@ export function CreateCaseModal({ conversationId, onClose, onCreated }: { conver
                 return (
                   <label key={r.userId} className={`cand compact ${pic === r.userId ? 'selected' : ''}`}>
                     <input type="radio" name="cc-pic" value={r.userId} checked={pic === r.userId} onChange={() => setPic(r.userId)} />
-                    <Avatar name={u.name} size={28} />
+                    <Avatar name={u.name} size={32} userId={u.id} />
                     <div className="cand-who">
                       <strong className={r.isCustomerOwner ? 'owner-name' : undefined}>{u.name}</strong>{' '}
                       {r.isCustomerOwner && <Chip tone="purple">ผู้ดูแลหลักของลูกค้า · ลำดับแรก</Chip>}{' '}

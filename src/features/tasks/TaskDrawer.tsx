@@ -90,7 +90,7 @@ export function TaskDrawer({ taskId, onClose }: { taskId: string; onClose: () =>
           {comments.length === 0 && <li className="muted small">ยังไม่มีความคิดเห็น</li>}
           {comments.map((cm) => (
             <li key={cm.id} className="comment">
-              <Avatar name={L.userName(cm.authorId)} size={24} />
+              <Avatar name={L.userName(cm.authorId)} size={24} userId={cm.authorId} />
               <div>
                 <p className="small"><strong>{L.userName(cm.authorId)}</strong> <span className="muted">{formatDateTime(cm.createdAt)}</span></p>
                 <p>{cm.body}</p>

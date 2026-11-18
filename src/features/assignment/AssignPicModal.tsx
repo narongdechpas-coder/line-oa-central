@@ -64,7 +64,7 @@ export function AssignPicModal({ caseId, onClose }: { caseId: string; onClose: (
             return (
               <label key={r.userId} className={`cand ${selected === r.userId ? 'selected' : ''} ${current ? 'is-current' : ''}`}>
                 <input type="radio" name="pic" value={r.userId} checked={selected === r.userId} disabled={current} onChange={() => setSelected(r.userId)} />
-                <Avatar name={u.name} size={34} />
+                <Avatar name={u.name} size={40} userId={u.id} />
                 <div className="cand-who">
                   <strong>{u.name}</strong>
                   {r.recommended && <Chip tone="blue"><Star size={11} aria-hidden="true" /> แนะนำ</Chip>}

@@ -10,7 +10,7 @@ import { CASE_STATUS_LABEL, PRIORITY_LABEL, SLA_LABEL } from '../../utils/labels
 import { formatDateTime } from '../../utils/time';
 import { CASE_STATUSES, PRIORITIES, SLA_STATES } from '../../types/domain';
 import { CaseStatusChip, PriorityChip, SlaChip } from '../../components/common/Chip';
-import { Card, EmptyState } from '../../components/common/ui';
+import { Card, EmptyState, UserChip } from '../../components/common/ui';
 import { ChannelBadge } from '../channels/ChannelBadge';
 
 /** Filters live in the URL so Dashboard cards can deep-link (e.g. ?status=OPEN&sla=RISK). */
@@ -112,7 +112,7 @@ export function CasesPage() {
                   <td>{L.customer(c.originalCustomerId)?.displayName}<div><ChannelBadge channelId={c.originalChannelId} small /></div></td>
                   <td><CaseStatusChip status={c.status} /></td>
                   <td><PriorityChip priority={c.priority} /></td>
-                  <td>{L.depName(c.currentDepartmentId)}<div className="muted small">{L.userName(c.currentOwnerId)}</div></td>
+                  <td>{L.depName(c.currentDepartmentId)}<div className="small"><UserChip userId={c.currentOwnerId} name={L.userName(c.currentOwnerId)} size={20} /></div></td>
                   <td><SlaChip state={sla.state} /></td>
                   <td className="nowrap small">{formatDateTime(c.dueAt)}</td>
                 </tr>

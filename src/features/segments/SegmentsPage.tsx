@@ -9,7 +9,7 @@ import { PURPOSE_LABEL } from '../../utils/consent';
 import { describeRule } from '../../utils/segments';
 import { formatDateTime } from '../../utils/time';
 import { CONSENT_PURPOSES, type SegmentRule } from '../../types/domain';
-import { Button, Card, EmptyState, Field } from '../../components/common/ui';
+import { Button, Card, EmptyState, Field, UserChip } from '../../components/common/ui';
 import { DemoTag } from '../../components/common/Chip';
 import { ConfirmDialog, Modal } from '../../components/overlays/Modal';
 import { ChannelBadge } from '../channels/ChannelBadge';
@@ -67,7 +67,7 @@ export function SegmentsPage() {
                         <tr key={c.id}>
                           <td><Link to={`/customers/${c.id}`} className="link">{c.displayName}</Link></td>
                           <td><ChannelBadge channelId={c.channelId} small /></td>
-                          <td>{L.userName(c.ownerUserId)}</td>
+                          <td>{c.ownerUserId ? <UserChip userId={c.ownerUserId} name={L.userName(c.ownerUserId)} /> : '—'}</td>
                           <td>{days !== null ? `อีก ${days} วัน` : '—'}</td>
                           <td><ConsentBadge customerId={c.id} /></td>
                         </tr>
