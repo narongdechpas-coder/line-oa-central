@@ -133,3 +133,15 @@ export const segmentMembers = (data: DemoData, user: DemoUser, segmentId: string
   if (!seg) return [];
   return visibleCustomers(data, user).filter((c) => matchesAll(data, c, seg.rules, nowIso));
 };
+
+/**
+ * Active conversations of customers this user owns that the user cannot open in the Inbox.
+ * Metadata only (no message text): the owner knows the customer is in contact, but reading
+ * the chat requires a role on it (assigned PIC, or a case worker / OBSERVER) — purpose limitation.
+ */
+export function ownedHiddenConversations(data: DemoData, user: DemoUser): Conversation[] {
+  const owned = new Set(data.customers.filter((c) => c.ownerUserId === user.id).map((c) => c.id));
+  return data.conversations
+    .filter((v) => owned.has(v.customerId) && v.status !== 'CLOSED' && !canSeeConversation(data, user, v))
+    .sort((a, b) => Date.parse(b.lastMessageAt) - Date.parse(a.lastMessageAt));
+}

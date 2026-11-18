@@ -4,7 +4,7 @@ import { DEMO_START, SEED, cloneSeed } from '../data/seed';
 import * as svc from '../services/mock';
 import { DemoError } from '../services/mock';
 import type { DemoState } from '../types/domain';
-import { canReplyConversation, canSeeCase, canWorkOnCase, isObserverOnly } from '../utils/permissions';
+import { canReplyConversation, canSeeCase, canSeeConversation, canWorkOnCase, isObserverOnly } from '../utils/permissions';
 import { rankPicsForCase } from '../utils/routing';
 import { isEligiblePic } from '../utils/scoring';
 
@@ -166,5 +166,20 @@ describe('topic admin', () => {
     const s2 = svc.saveTopic(s, { ...motor, picUserIds: ['usr-pic-4'] }).state;
     expect(kase(s2, 'case-0001').currentOwnerId).toBe('usr-pic-1'); // unchanged
     expectError(() => svc.createCaseFromConversation(s2, 'conv-034', { title: 'x', topicId: 'tp-motor-claim', priority: 'LOW', picUserId: 'usr-pic-1' }));
+  });
+});
+
+describe('customer owner inbox visibility (purpose limitation)', () => {
+  it('owner sees metadata of an unassigned chat but not the chat itself until a case gives them a role', () => {
+    let s = fresh('usr-sup-claims');
+    const conv = () => s.data.conversations.find((v) => v.id === 'conv-033')!;
+    const owner = user(s, 'usr-mkt-1');
+    expect(canSeeConversation(s.data, owner, conv())).toBe(false);
+    expect(svc.ownedHiddenConversations(s.data, owner).map((v) => v.id)).toEqual(['conv-033']);
+    // other users get no notice for customers they do not own
+    expect(svc.ownedHiddenConversations(s.data, user(s, 'usr-mkt-2')).map((v) => v.id)).not.toContain('conv-033');
+    s = svc.createCaseFromConversation(s, 'conv-033', { title: 'ชนแล้วหนี', topicId: 'tp-motor-claim', priority: 'HIGH', picUserId: 'usr-pic-1' }).state;
+    expect(canSeeConversation(s.data, user(s, 'usr-mkt-1'), conv())).toBe(true); // OBSERVER via the case
+    expect(svc.ownedHiddenConversations(s.data, user(s, 'usr-mkt-1'))).toEqual([]);
   });
 });

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Inbox, Lock, MessageSquarePlus, Send } from 'lucide-react';
+import { EyeOff, Inbox, Lock, MessageSquarePlus, Send } from 'lucide-react';
 import { useActingUser, useDemoStore } from '../../store/demoStore';
 import { report, useLookups } from '../../store/hooks';
-import { getConversation, lastMessage, listConversations, type ConversationFilters } from '../../services/mock/queries';
+import { getConversation, lastMessage, listConversations, ownedHiddenConversations, type ConversationFilters } from '../../services/mock/queries';
 import { can, canReplyConversation, canSeeCase, canSeeConversation, canSeeCustomer } from '../../utils/permissions';
 import { CONVERSATION_STATUS_LABEL } from '../../utils/labels';
 import { formatDateTime, formatTime } from '../../utils/time';
@@ -40,6 +40,7 @@ export function InboxPage() {
 
   const list = useMemo(() => listConversations(data, me, filters), [data, me, params]); // eslint-disable-line react-hooks/exhaustive-deps
   const scopedAll = useMemo(() => listConversations(data, me), [data, me]);
+  const ownedHidden = useMemo(() => ownedHiddenConversations(data, me), [data, me]);
   const selected = conversationId ? getConversation(data, conversationId) : null;
   const allowed = selected ? canSeeConversation(data, me, selected.conversation) : true;
 
@@ -86,10 +87,26 @@ export function InboxPage() {
             ))}
           </select>
         </div>
+        {ownedHidden.length > 0 && (
+          <section className="owner-notice" aria-label="ลูกค้าที่คุณดูแลกำลังติดต่อเข้ามา">
+            <p className="owner-notice-title"><EyeOff size={14} aria-hidden="true" /> ลูกค้าที่คุณดูแลมีบทสนทนาเปิดอยู่ {ownedHidden.length} รายการ</p>
+            <ul>
+              {ownedHidden.map((v) => (
+                <li key={v.id}>
+                  <Link to={`/customers/${v.customerId}`} className="related-item">
+                    <strong>{L.customer(v.customerId)?.displayName}</strong> <ChannelBadge channelId={v.channelId} small />
+                    <span className="muted">{CONVERSATION_STATUS_LABEL[v.status]} · {v.assignedUserId ? `PIC ${L.userName(v.assignedUserId)}` : 'ยังไม่มอบหมาย'} · ล่าสุด {formatDateTime(v.lastMessageAt)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="muted small">ไม่แสดงข้อความเพื่อจำกัดการใช้ข้อมูลตามขอบเขต consent ของแต่ละ OA — คุณจะเห็นแชตเมื่อมีการสร้าง Case (เข้าร่วมเป็น PIC หรือผู้ติดตาม) หรือถูกมอบหมายบทสนทนา</p>
+          </section>
+        )}
         <ul className="conv-list">
           {list.length === 0 && (
             <li>
-              <EmptyState icon={<Inbox size={28} />} title="ไม่มีบทสนทนาตามตัวกรอง" hint={scopedAll.length ? 'ลองล้างตัวกรอง' : 'บทบาทนี้ยังไม่มีบทสนทนาที่ได้รับมอบหมาย'} />
+              <EmptyState icon={<Inbox size={28} />} title="ไม่มีบทสนทนาตามตัวกรอง" hint={scopedAll.length ? 'ลองล้างตัวกรอง' : ownedHidden.length ? 'ยังไม่มีบทสนทนาที่มอบหมายให้คุณ' : 'บทบาทนี้ยังไม่มีบทสนทนาที่ได้รับมอบหมาย'} />
             </li>
           )}
           {list.map((c) => {
