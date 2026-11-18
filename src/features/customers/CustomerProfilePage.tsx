@@ -15,7 +15,7 @@ import {
   canSeeCustomer,
 } from '../../utils/permissions';
 import { CATEGORY_LABEL, PURPOSE_LABEL, canBeLinked, consentOf, noticeOf, optionalPurposes } from '../../utils/consent';
-import { POLICY_STATUS_LABEL, POLICY_TONE } from '../../utils/labels';
+import { CONVERSATION_STATUS_LABEL, POLICY_STATUS_LABEL, POLICY_TONE } from '../../utils/labels';
 import { isCaseOpen } from '../../utils/transitions';
 import { formatDateTime, ms } from '../../utils/time';
 import { DATA_CATEGORIES, type ConsentPurpose, type Customer, type CustomFieldDefinition, type CustomFieldValue } from '../../types/domain';
@@ -529,7 +529,12 @@ function HistoryTab({ customer: c }: { customer: Customer }) {
               <li key={v.id}>
                 {canSeeConversation(data, me, v) ? (
                   <Link to={`/inbox/${v.id}`} className="related-item"><ChannelBadge channelId={v.channelId} small /> ล่าสุด {formatDateTime(v.lastMessageAt)} · PIC {L.userName(v.assignedUserId)}</Link>
-                ) : <span className="related-item muted"><Lock size={12} /> บทสนทนานอกขอบเขตสิทธิ์</span>}
+                ) : (
+                  <span className="related-item conv-meta">
+                    <Lock size={12} aria-hidden="true" /> <ChannelBadge channelId={v.channelId} small /> {CONVERSATION_STATUS_LABEL[v.status]} · {v.assignedUserId ? `PIC ${L.userName(v.assignedUserId)}` : 'ยังไม่มอบหมาย'} · ล่าสุด {formatDateTime(v.lastMessageAt)}
+                    <span className="muted">ไม่แสดงข้อความ — เห็นแชตเมื่อมีบทบาทใน Case หรือได้รับมอบหมาย</span>
+                  </span>
+                )}
               </li>
             ))}
           </ul>
